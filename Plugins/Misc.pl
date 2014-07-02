@@ -2,24 +2,36 @@ addPlug("Caaz_Utilities", {
   'creator' => 'Caaz',
   'version' => '1',
   'name' => 'Misc utilities',
-  'dependencies' => ['Core_Utilities','Core_Users'],
+  'dependencies' => ['Core_Utilities'],
   'modules' => ['HTML::Entities', 'LWP::Simple'],
   'utilities' => {
     'randName' => sub {
       my $url = 'http://www.behindthename.com/random/random.php?';
       if($_[0]) {
+        lkDebug('Using Params');
         my @params;
         foreach(keys %{$_[0]}){ push(@params,"$_=$_[0]{$_}"); }
         $url .= join '&', @params;
       }
-      else { $url .= 'number=1&gender=both&surname=&all=no&usage_eng=yes'; }
+      else { lkDebug("Using default."); $url .= 'number=1&gender=both&surname=&all=no&usage_eng=1'; }
+      lkDebug($url);
       if(get($url) =~ /\<span class=\"heavyhuge\"\>(.+?)\<\/span\>/is) {
         my $capture = $1;
         my @name;
         while($capture =~ /\<a class=\"plain\".+?\>(.+?)\<\/a\>/g) { push(@name, $1); }
-        return join " ", @name;
+        return decode_entities(join " ", @name);
       }
       return 'NONAME';
+    },
+    'pluralize' => sub {
+      # Input: Word, count.
+      my $word = $_[0];
+      if((!$_[1]) || ($_[1] >= 2)) {
+        if($word =~ /y$/) { $word =~ s/y$/ies/; }
+        elsif($word =~ /s$/) { return $word; }
+        else { $word .= 's'; }
+      }
+      return $word;
     },
   },
   'code' => {
@@ -28,7 +40,8 @@ addPlug("Caaz_Utilities", {
       if($irc{msg}[1] =~ /^invite$/i) {
         push(@{$lk{data}{networks}[$lk{tmp}{connection}{fileno($irc{irc})}]{autojoin}}, $irc{msg}[3]);
         lkRaw($irc{irc},"JOIN $irc{msg}[3]");
-        &{$utility{'Fancify_say'}}($irc{irc}, $irc{msg}[3], "Added channel to autojoin. If you ever want to get rid of me, kick me and I'll probably remove it or something. Command prefix is \x04~\x04 or \x04-\x04, depending on what you want to use. In private message the prefix can be dropped entirely. Try out the help command.");
+        &{$utility{'Fancify_say'}}($irc{irc}, $irc{msg}[3], "[Invited by \x04$irc{msg}[0]\x04] This channel is added to >>autojoin. If you ever wish to remove me, simply kick me and I won't be coming back. To see command listing, check out >>help. Command prefix is \x04$lk{data}{prefix}\x04 Better learn regex.");
+        #&{$utility{'Fancify_say'}}($irc{irc}, (split /\!|\@/, $irc{msg}[0])[0], "Memo Caaz if you want me in $irc{msg}[3].");
       }
       #Rizon:Caaz!Caaz@I.am.Caazy.you.see:KICK:#TheFusion:Caaz:God dammit
       elsif($irc{msg}[1] =~ /^kick$/i) {
@@ -78,7 +91,7 @@ addPlug("Poll", {
           push(@{$poll{answers}}, {'text' => $_, 'votes' => 0});
         }
         push(@{$_[3]{polls}}, \%poll);
-        &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Created poll! Check the poll IDs and Option IDs with \x04~poll list\x04 and vote with \x04~vote PollID OptionID");
+        &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Created poll! Check the poll IDs with \x04~polls\x04 and vote with \x04~vote PollID Option");
       }
     },
     '^Poll close (\d+)$' => {
@@ -157,6 +170,7 @@ addPlug("Misc_Commands", {
   'creator' => 'Caaz',
   'name' => 'Misc Commands',
   'dependencies' => ['Fancify','Caaz_Utilities'],
+  'modules' => ['Sys::Hostname'],
   'description' => "This is generally where I throw commands that aren't important/big enough to have their own plugin.",
   'help' => {
     'Commands' => "The commands list is over here https://dl.dropboxusercontent.com/u/9305622/Luka/Commands.html This page is updated whenever someone uses the ~commands command."
@@ -170,56 +184,6 @@ addPlug("Misc_Commands", {
         lkRaw($_[1]{irc},"TOPIC $_[2]{where} :".&{$utility{'Fancify_main'}}($1));
       }
     },
-    '^Commands$' => {
-      'tags' => ['utility','misc'],
-      'description' => 'Links you here.',
-      'code' => sub {
-        my %commands;
-        foreach $plugin (keys %{$lk{plugin}}) {
-          foreach $regex (keys %{$lk{plugin}{$plugin}{commands}}) {
-            push(@{$commands{$plugin}}, $regex) if $lk{plugin}{$plugin}{commands}{$regex}{description};
-          }
-        }
-        my $html = '<html><head><title>'.$lk{version}.' Commands</title><script type="text/javascript" src="//code.jquery.com/jquery-latest.js"></script><script type="text/javascript" src="https://dl.dropboxusercontent.com/u/7503868/commands/fancy_luka.js"></script> <link rel="stylesheet" type="text/css" href="style.css"></head><body><img class="luka" src="Luka.png"><div class="content">';
-        
-        $html .= '<div class="command"><div class="regex"><h2>'.$lk{version}.'</h2></div><div class="info">';
-        open LUKA, "<./LukaInfo.txt";
-        while(<LUKA>) { $html .= $_."<br />"; }
-        close LUKA;
-        $html .= '</div></div>';
-        #&{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"[\x04".(join "\x04] [\x04", @commands)."\x04]");
-        my @plugins = sort keys %commands;
-        foreach $plugin (@plugins) {
-          my $pluginName = $plugin;
-          $html .= '<div class="command"><div class="regex">'.$lk{plugin}{$plugin}{name}.'</div><div class="info">';
-          $html .= 'Creator: '.$lk{plugin}{$plugin}{creator}.'<br />' if($lk{plugin}{$plugin}{creator});
-          $html .= 'Version: '.$lk{plugin}{$plugin}{version}.'<br />' if($lk{plugin}{$plugin}{version});
-          $html .= 'Description: '.$lk{plugin}{$plugin}{description}.'<br />' if($lk{plugin}{$plugin}{description});
-          @{$commands{$plugin}} = sort @{$commands{$plugin}};
-          foreach (@{$commands{$plugin}}) {
-            my $friendly = $_;
-            $friendly =~ s/^\^|\$$//g;
-            $html .= 
-            '<div class="command">
-            <div class="regex">/^'.$lk{data}{prefix}.$friendly.'$/i';
-            foreach(@{$lk{plugin}{$plugin}{commands}{$_}{tags}}) { $html .= '<span class="tag_'.$_.'">'.$_.'</span>'; }
-            $html .= '<span class="tag_access">Access: '.$lk{plugin}{$plugin}{commands}{$_}{access}.'</span>' if($lk{plugin}{$plugin}{commands}{$_}{access});
-            $html .= '<span class="tag_cooldown">Cooldown: '.$lk{plugin}{$plugin}{commands}{$_}{cooldown}.'</span>' if($lk{plugin}{$plugin}{commands}{$_}{cooldown});
-            $html .= '</div><div class="info">';
-            
-            $html .= $lk{plugin}{$plugin}{commands}{$_}{description}.'</br>' if($lk{plugin}{$plugin}{commands}{$_}{description});
-            $html .= 'Example: <pre>'.$lk{plugin}{$plugin}{commands}{$_}{example}.'</pre>' if($lk{plugin}{$plugin}{commands}{$_}{example});
-            $html .= '</div></div>';
-          }
-          $html .= '</div></div>';
-        }
-        $html .= '</div></body></html>';
-        open HTML, ">C:/Users/Caaz/Dropbox/Public/Luka/Commands.html";
-        print HTML $html;
-        close HTML;
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"List of commands? Here you go. https://dl.dropboxusercontent.com/u/9305622/Luka/Commands.html");
-      }
-    },
     '^Timer (\d+) (.+)$' => {
       'tags' => ['misc','utility'],
       'description' => "Issues a timer! Available options are say and action.",
@@ -227,6 +191,7 @@ addPlug("Misc_Commands", {
         my ($time, $command) = ($1,$2);
         if($command =~ /^say (.+)/i) {
           addTimer(time+$time, {
+          'name' => "User Timer",
           'code' => sub { 
             lkDebug($_[1]);
             my @a = @{$_[1]}; 
@@ -248,9 +213,9 @@ addPlug("Misc_Commands", {
       'code' => sub { &{$utility{'Fancify_action'}}($_[1]{irc},$_[2]{where},$1); }
     },
     '^RandName$' => {
-      'tags' => ['misc'],
+      'tags' => ['misc','utility'],
       'description' => "Gets a random name.",
-      'code' => sub { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},&{$utility{'Caaz_Utilities_randName'}}); }
+      'code' => sub { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},&{$utility{'Caaz_Utilities_randName'}}()); }
     },
     '^Piglatin (.+)$' => {
       'tags' => ['misc'],
@@ -274,7 +239,7 @@ addPlug("Misc_Commands", {
           foreach(@lines) { if($_ =~ /\#/) {$count{comments}++;} }
           close NEW;
         }
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"[\x04$lk{version}\x04] (>>$lk{os}) >>$count{lines} lines, >>$count{comments} comments, >>".(keys %{$lk{plugin}})." plugins, >>".@files." files.");
+        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"[\x04$lk{version}\x04] (".hostname()." >>$lk{os}) >>$count{lines} lines, >>$count{comments} comments, >>".(keys %{$lk{plugin}})." plugins loaded, >>".@files." files.");
       }
     }
   }

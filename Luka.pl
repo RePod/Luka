@@ -8,13 +8,12 @@ use IO::Select; # Used for handling connections!
 use IO::Socket; # Used for connecting!
 use utf8; # Used for fancy stuff, generally here to be safe.
 use JSON; # Used for data saving! Because YAML is for losers.
-use Digest::MD5 qw(md5_hex); # Used for Userbase. I /should/ put this in module_dependencies but that'd require more coding right now...
 $lk{version} = 'Luka 4.0';
 $lk{select} = IO::Select->new();
 ($lk{directory} = abs_path($0)) =~ s/([\\\/])[^\\\/]+?\.pl$/$1/;
 lkDebug($lk{directory});
 chdir($lk{directory}) or warn "Couldn't chdir to $lk{directory}.";
-eval("use Android"); if($@){ $lk{os} = $^O; } else { $lk{os} = "droid"; eval('$lk{droid} = Android->new();'); }
+eval("use Android"); if($@){ $lk{os} = $^O; } else { $lk{os} = "android"; eval('$lk{droid} = Android->new();'); }
 if(!lkLoad()) {
   lkDebug("You don't have any save file! You must be new here! Welcome to Luka.");
   print "I'll need a prefix for this bot! This prefix is used globally for commands. it's gonna be thrown into regex matches, so keep that in mind.\n>";
@@ -124,21 +123,27 @@ sub lkLoad {
   if($@) { return 0; } 
   else { return 1; }
 }
+sub lkConnectTo {
+  # ID
+  my $thing = $lk{data}{networks}[$_[0]];
+  lkDebug("Connecting to ${$thing}{name}.");
+  if(${$thing}{disable}) { lkDebug("Network ${$thing}{name} is disabled. Skipping."); return 0; }
+  my $connection = new IO::Socket::INET(PeerAddr => ${$thing}{host}, PeerPort => ${$thing}{port}, Proto => 'tcp');
+  if($@) { lkDebug($@); return 0; }
+  else {
+    $lk{tmp}{connection}{fileno($connection)} = $_[0];
+    $lk{tmp}{filehandles}{fileno($connection)} = $connection;
+    lkRaw($connection,"NICK ${$thing}{nickname}","USER ${$thing}{username} * 0 :${$thing}{realname}");
+    $lk{select}->add($connection);
+    return 1;
+  }
+}
 sub lkConnect {
   # Start connecting to all enabled servers.
   if(($lk{data}{networks}) && (@{$lk{data}{networks}})) {
     my $i = 0;
     foreach(@{$lk{data}{networks}}) {
-      lkDebug("Connecting to ${$_}{name}.");
-      if(${$_}{disable}) { lkDebug("Network ${$_}{name} is disabled. Skipping."); $i++; next; }
-      my $connection = new IO::Socket::INET(PeerAddr => ${$_}{host}, PeerPort => ${$_}{port}, Proto => 'tcp');
-      if($@) { lkDebug($@); }
-      else {
-        $lk{tmp}{connection}{fileno($connection)} = $i;
-        $lk{tmp}{filehandles}{fileno($connection)} = $connection;
-        lkRaw($connection,"USER ${$_}{username} * * :${$_}{realname}","NICK ${$_}{nickname}");
-        $lk{select}->add($connection);
-      }
+      lkConnectTo($i);
       $i++;
     }
     while(1) {
@@ -162,7 +167,9 @@ sub lkConnect {
         my $rawmsg = readline($fh);
         # Handle this line properly.
         if(!$rawmsg) {
-          lkDebug("Null message? Perhaps... disconnection?");
+          lkDebug("Null message. Assuming disconnection.");
+          delete $lk{tmp}{connection}{fileno($fh)};
+          delete $lk{tmp}{filehandles}{fileno($fh)};
           $lk{select}->remove($fh);
           $fh->close;
           next;
@@ -180,8 +187,9 @@ sub lkConnect {
           } 
         }
         if($ignore) { next; }
-        lkDebug($lk{data}{networks}[$lk{tmp}{connection}{fileno($fh)}]{name}.':'.(join ":", @msg));
+        #lkDebug($lk{data}{networks}[$lk{tmp}{connection}{fileno($fh)}]{name}.':'.(join ":", @msg));
         if($rawmsg =~ /^PING(.+)$/i) { lkRaw($fh,"PONG$1"); lkSave(); }
+        # Rizon:irc.cccp-project.net:433:*:Luka:Nickname is already in use.
         if($msg[1] =~ /^001$/) {
           # Connected. Do nickserv stuff if needed!
           lkRaw($fh, "PRIVMSG Nickserv :id ".$lk{data}{networks}[$lk{tmp}{connection}{fileno($fh)}]{nickserv}) if($lk{data}{networks}[$lk{tmp}{connection}{fileno($fh)}]{nickserv});
@@ -190,7 +198,7 @@ sub lkConnect {
         }
         # Pass things to plugins!
         foreach(keys %{$lk{plugin}}) {
-          eval { &{$lk{plugin}{$_}{code}{irc}}({'irc' => $fh, 'raw' => $rawmsg, 'msg', => \@msg, 'data' => $lk{data}{plugin}{$_}, 'tmp' => $lk{tmp}{plugin}{$_}}) if($lk{plugin}{$_}{code}{irc}); };
+          eval { &{$lk{plugin}{$_}{code}{irc}}({'irc' => $fh, 'name'=>$lk{data}{networks}[$lk{tmp}{connection}{fileno($fh)}]{name}, 'raw' => $rawmsg, 'msg', => \@msg, 'data' => $lk{data}{plugin}{$_}, 'tmp' => $lk{tmp}{plugin}{$_}}) if($lk{plugin}{$_}{code}{irc}); };
           print $@ if $@;
         }
       }
@@ -223,7 +231,7 @@ sub lkUnloadPlugins {
 }
 sub lkLoadPlugins {
   # Alright guys, here's where shit gets serious.
-  my $errors = 0;
+  my @errors = ();
   if(!-e "Plugins/") { lkDebug("No plugin directory! Making one."); mkdir("Plugins"); }
   foreach(<Plugins/*.pl>) {
     # Check file timestamps, only load plugins which are new!
@@ -231,7 +239,7 @@ sub lkLoadPlugins {
       $lk{tmp}{lastUpdated}{$_} = (stat($_))[9];
       lkDebug("Loading $_.");
       open NEW, "<".$_; eval(join "", <NEW>);
-      if($@){ $errors++; lkDebug($@); } 
+      if($@){ push(@errors, {plugin=>$_,message=>$@}); delete $lk{tmp}{lastUpdated}{$_}; lkDebug($@); } 
       close NEW;
     }
   }
@@ -244,7 +252,7 @@ sub lkLoadPlugins {
       # Cross plugin dependencies
       foreach(@{$lk{plugin}{$plug}{dependencies}}) {
         if(!$lk{plugin}{$_}){
-          $errors++;
+          push(@errors, {plugin=>$plug,message=>"Didn't meet plugin dependency ($_)"});
           lkDebug("Deleting plugin $lk{plugin}{$plug}{name} ($plug). Didn't meet dependency ($_)");
           delete $lk{plugin}{$plug};
           $modified = 1;
@@ -254,7 +262,7 @@ sub lkLoadPlugins {
       foreach(@{$lk{plugin}{$plug}{modules}}) {
         eval("use $_;");
         if($@) {
-          $errors++;
+          push(@errors, {plugin=>$plug,message=>"Didn't meet module dependency ($_)"});
           lkDebug("Deleting plugin $lk{plugin}{$plug}{name} ($plug). Didn't meet module dependency ($_)");
           delete $lk{plugin}{$plug};
           $modified = 1;
@@ -266,7 +274,7 @@ sub lkLoadPlugins {
   foreach(keys %{$lk{plugin}}) {
     &{$lk{plugin}{$_}{code}{load}}({'data' => $lk{data}{plugin}{$_}, 'tmp' => $lk{tmp}{plugin}{$_}}) if($lk{plugin}{$_}{code}{load});
   }
-  return $errors;
+  return \@errors;
 }
 sub lkEnd {
   lkDebug("Quitting safely.");
@@ -293,6 +301,7 @@ sub addPlug {
   if($lk{data}{disablePlugin}{$_[0]}) {
     # Plugin is disabled, according to config!
     lkDebug("Ignoring Plugin ${$_[1]}{name} ($_[0])");
+    %{$lk{plugin}{$_[0]}} = ('name' => ${$_[1]}{name});
   }
   else {
     # Plugin is probably not disabled, so try loading it!
@@ -301,6 +310,7 @@ sub addPlug {
       &{$lk{plugin}{$_[0]}{code}{unload}}({'data' => $lk{data}{plugin}{$_[0]}, 'tmp' => $lk{tmp}{plugin}{$_[0]}}) if($lk{plugin}{$_[0]}{code}{unload}); 
       lkDebug("Overwriting Plugin ${$_[1]}{name} ($_[0])"); 
       delete $lk{plugin}{$_[0]};
+      %{$lk{plugin}{$_[0]}} = ('name' => ${$_[1]}{name});
     }
     # Key doesn't exist. Must be loading the plugin for the first time!
     else { lkDebug("Loading Plugin ${$_[1]}{name} ($_[0])"); }

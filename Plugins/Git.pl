@@ -49,15 +49,16 @@ addPlug('Git', {
       'tags' => ['utility'],
       'code' => sub {
         my @output = split /\n|\r/, `git pull`;
-        my $changes = 0;
+        my $changes = 'No changes made';
         foreach(@output) {
           chomp($_);
-          lkDebug($_);
-          if(/(\d) files? changed/i) {
-            my $changes = $1;
+          #  2 files changed, 4 insertions(+), 8 deletions(-)
+          if($_ =~ /(\d+) files? changed/i) {
+            ($changes = $_) =~ s/^\s|\s$//g;
           }
         }
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Pulled latest updates from >>Github. $changes changes made.");
+        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Pulled latest updates from >>Github. $changes Reloading.");
+        &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},0);
       }
     },
     '^Git status$' => {
@@ -66,22 +67,34 @@ addPlug('Git', {
       'tags' => ['utility'],
       'code' => sub {
         system('git add *.pl'); system('git add *.bat');
+        system('git remote update');
         my @output = split /\n|\r/, `git status`;
         my @files = ();
+        my $behind;
         foreach(@output) {
           chomp($_);
           lkDebug('Got: '.$_);
-          if(/\#\s+modified\:\s+(.+)$/) {
+          if(/\#\s+(?:modified|new file)\:\s+(.+)$/i) {
             my $name = $1;
             $name =~ s/.+[\\\/](.+)/$1/g;
             push(@files,$1);
           }
+          elsif(/behind (\'.+?\') by (\d+)/) {
+            $behind = $2;
+            if($behind > 1) { $behind .= " commits"; }
+            else { $behind .= " commit"; }
+          }
         }
-        if(@files) {
-          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There are >>".@files." files modified and ready to be pushed. [\x04".(join "\x04] [\x04", @files)."\x04]");
+        if($behind) {
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Your're behind by $behind. >>git >>pull to get the updates.");
         }
         else {
-          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There are no files modified. Everything is synced up!");
+          if(@files) {
+            &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There are >>".@files." files modified and ready to be pushed. [\x04".(join "\x04] [\x04", @files)."\x04]");
+          }
+          else {
+            &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There are no files modified. Everything is synced up!");
+          }
         }
       }
     }
