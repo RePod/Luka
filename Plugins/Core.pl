@@ -69,10 +69,10 @@ addPlug('Core_CTCP', {
         my %parsed = %{&{$lk{plugin}{'Core_Utilities'}{utilities}{parse}}(@{$irc{msg}})};
         if($parsed{msg} =~ /\x01(.+)\x01/i) {
           my $ctcp = $1;
-          if($ctcp =~ /^VERSION$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :VERSION $lk{version} ($lk{os})"); }
-          elsif($ctcp =~ /^TIME$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :TIME ".localtime); }
-          elsif($ctcp =~ /^FINGER$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :FINGER Oh god yes"); }
-          elsif($ctcp =~ /^PING$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :PING PONG"); }
+          if($ctcp =~ /^VERSION$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :\x01VERSION $lk{version} ($lk{os})\x01"); }
+          elsif($ctcp =~ /^TIME$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :\x01TIME ".localtime."\x01"); }
+          elsif($ctcp =~ /^FINGER$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :\x01FINGER Oh god yes\x01"); }
+          elsif($ctcp =~ /^PING$/i) { lkRaw($irc{irc},"NOTICE $parsed{nickname} :\x01PING PONG\x01"); }
         }
       }
     }
