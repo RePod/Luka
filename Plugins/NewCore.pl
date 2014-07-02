@@ -27,7 +27,7 @@ addPlug('Core', {
       foreach(@{$return{errors}}) {
         my @msg = split /\n/, ${$_}{message};
         @msg = grep !/^\s+?$/, @msg;
-        &{$utility{'Fancify_say'}}($_[0],$_[1],"[\x04${$_}{plugin}\x04] ".(join " \x04|\x04 ", @msg));
+        &{$utility{'Fancify_say'}}($_[0],$_[1],"[\x04${$_}{plugin}\x04] ".$msg[0]);
       }
     },
     'getAllPlugins' => sub {
@@ -138,7 +138,7 @@ addPlug('Core', {
         my $count = 0;
         foreach(@keys) { $count += &{$utility{'Core_setPluginDisabled'}}($_,0); }
         if($count) {
-          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'>>$count '.&{$utility{'Caaz_Utilities_pluralize'}}('plugin', $count).' enabled. >>Refreshing...');
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$count ".&{$utility{'Caaz_Utilities_pluralize'}}('plugin', $count).' enabled. >>Refreshing...');
           &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
         }
         else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No plugins affected.'); }

@@ -24,7 +24,7 @@ addPlug('Timezone', {
         &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},$dt->month_name()." ".$dt->day().", ".(join ":", @time));
       }
     },
-    '^Time?$' => {
+    '^Time$' => {
       'description' => "Checks time locally.",
       'tags' => ['misc','utility'],
       'code' => sub {

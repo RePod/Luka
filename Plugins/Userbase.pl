@@ -73,10 +73,20 @@ addPlug('Userbase', {
     'info' => sub {
       # Server, Nicknamec
       if(!&{$utility{'Userbase_isLoggedIn'}}($_[0],$_[1])) { return {0=>0}; }
-      foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) {
-        if(grep /^$_[1]$/i, @{${$_}{nicknames}}) { if((${$_}{currently}) && (${$_}{currently} eq $_[1])) { return $_; } }
-      }
+      foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) { if(grep /^$_[1]$/i, @{${$_}{nicknames}}) { if((${$_}{currently}) && (${$_}{currently} eq $_[1])) { return $_; } } }
       return {0=>0};
+    },
+    'getID' => sub {
+      # Input: Account
+      # Output: ID
+      my$i = 0;
+      foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) {
+        if ($_ eq $_[0]) { 
+          return $i;
+        }
+        $i++;
+      }
+      return -1
     },
     'view' => sub {
       #Input: Server, Where, Nickname.
