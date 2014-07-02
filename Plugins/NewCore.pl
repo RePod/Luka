@@ -75,9 +75,12 @@ addPlug('Core', {
       if($string !~ /^$/) { &{$utility{'Fancify_say'}}($_[0],$_[1],$string); }
       #lkDebug(join ", ", @output);
     },
-    'disablePlugin' => sub {
-      # Input : Plugin Key
-      # Output : True if succeeded.
+    'setPluginDisabled' => sub {
+      # Input : Plugin Key, true/false
+      # Output : Plugin key name if succeeded, 0 if nothing.
+      my $output = 0;
+      foreach $plug (keys %{$lk{plugin}}) { lkDebug("Checking $plug against $_[0]"); if($plug =~ /^$_[0]$/i) { lkDebug('disabled'); $output = 1; $lk{data}{disablePlugin}{$plug} = $_[1]; } }
+      return $output;
     }
   },
   'commands' => {
@@ -110,6 +113,38 @@ addPlug('Core', {
       'tags' => ['utility'],
       'access' => 3,
       'code' => sub { &{$utility{'Core_showPlugins'}}($_[1]{irc},$_[2]{where},1); }
+    },
+    '^Plugins Disable (.+)$' => {
+      'description' => "Disables a list of plugins by key.",
+      'tags' => ['utility'],
+      'access' => 3,
+      'code' => sub {
+        my @keys = split /\s+/, $1;
+        my $count = 0;
+        foreach(@keys) { $count += &{$utility{'Core_setPluginDisabled'}}($_,1); }
+        if($count) {
+          # If anything...
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$count ".&{$utility{'Caaz_Utilities_pluralize'}}('plugin', $count).' disabled. >>Refreshing...');
+          &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
+        }
+        else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No plugins affected.'); }
+      }
+    },
+    '^Plugins Enable (.+)$' => {
+      'description' => "Enables a list of plugins by key.",
+      'tags' => ['utility'],
+      'access' => 3,
+      'code' => sub {
+        my @keys = split /\s+/, $1;
+        my $count = 0;
+        foreach(@keys) { $count += &{$utility{'Core_setPluginDisabled'}}($_,0); }
+        if($count) {
+          # If anything...
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'>>$count '.&{$utility{'Caaz_Utilities_pluralize'}}('plugin', $count).' enabled. >>Refreshing...');
+          &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
+        }
+        else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No plugins affected.'); }
+      }
     },
   }
 });
