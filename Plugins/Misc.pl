@@ -169,7 +169,7 @@ addPlug("Poll", {
 addPlug("Misc_Commands", {
   'creator' => 'Caaz',
   'name' => 'Misc Commands',
-  'dependencies' => ['Fancify','Caaz_Utilities'],
+  'dependencies' => ['Fancify','Core','Caaz_Utilities'],
   'modules' => ['Sys::Hostname'],
   'description' => "This is generally where I throw commands that aren't important/big enough to have their own plugin.",
   'help' => {
@@ -231,6 +231,7 @@ addPlug("Misc_Commands", {
       'description' => "Gets various information about this bot. Caaz's favorite command.",
       'code' => sub {
         my @files = (<./Plugins/*.pl>,$0);
+        my %plugins = %{&{$utility{'Core_getAllPlugins'}}};
         my %count = ('lines'=>0,'comments'=>0);
         foreach(@files) {
           open NEW, "<".$_;
@@ -239,7 +240,7 @@ addPlug("Misc_Commands", {
           foreach(@lines) { if($_ =~ /\#/) {$count{comments}++;} }
           close NEW;
         }
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"[\x04$lk{version}\x04] (".hostname()." >>$lk{os}) >>$count{lines} lines, >>$count{comments} comments, >>".(keys %{$lk{plugin}})." plugins loaded, >>".@files." files.");
+        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"[\x04$lk{version}\x04] (".hostname()." >>$lk{os}) >>$count{lines} lines, >>$count{comments} comments, >>".@{$plugins{loaded}}." plugins loaded, >>".@{$plugins{unloaded}}." plugins not loaded, >>".@files." files.");
       }
     }
   }

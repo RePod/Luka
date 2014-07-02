@@ -123,7 +123,6 @@ addPlug('Core', {
         my $count = 0;
         foreach(@keys) { $count += &{$utility{'Core_setPluginDisabled'}}($_,1); }
         if($count) {
-          # If anything...
           &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$count ".&{$utility{'Caaz_Utilities_pluralize'}}('plugin', $count).' disabled. >>Refreshing...');
           &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
         }
@@ -139,7 +138,6 @@ addPlug('Core', {
         my $count = 0;
         foreach(@keys) { $count += &{$utility{'Core_setPluginDisabled'}}($_,0); }
         if($count) {
-          # If anything...
           &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'>>$count '.&{$utility{'Caaz_Utilities_pluralize'}}('plugin', $count).' enabled. >>Refreshing...');
           &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
         }
