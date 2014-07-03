@@ -42,6 +42,10 @@ addPlug("Fancify", {
     'action' => sub {
       # Filehandle, Where, What.
       lkRaw($_[0],"PRIVMSG $_[1] :\x01ACTION ".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_[2])."\x01");
+    },
+    'part' => sub {
+      # Filehandle, Where, What.
+      lkRaw($_[0],"PART $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_[2]));
     }
   }
 });
