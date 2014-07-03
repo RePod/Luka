@@ -43,7 +43,9 @@ addPlug('Lyrics', {
       return \@lyrics;
     },
     'show' => sub {
-      # Input: Handle, Where, Lyrics Data.
+      # Input: Handle, Where, Lyrics Data, length
+      my $length = $_[3];
+      $length = 370 if(!$length);
       if(@{$_[2]}){
         foreach(@{$_[2]}) {
           # Title by ARTIST [url]

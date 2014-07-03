@@ -144,5 +144,14 @@ addPlug('Core', {
         else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No plugins affected.'); }
       }
     },
+    '^Announce (.+)$' => {
+      'description' => "Announces to all of the bot's channels.",
+      'tags' => ['utility'],
+      'access' => 3,
+      'code' => sub {
+        my $msg = $1;
+        foreach(@{$lk{data}{networks}[$lk{tmp}{connection}{fileno($_[1]{irc})}]{autojoin}}) { &{$utility{'Fancify_say'}}($_[1]{irc},$_,$msg); }
+      }
+    },
   }
 });

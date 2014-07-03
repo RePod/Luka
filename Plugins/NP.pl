@@ -31,7 +31,7 @@ addPlug("Foobar",{
         }
         else { $lk{tmp}{plugin}{'Foobar'}{lastNP}{$_[2]{name}} = $_[2]{info}{title}; }
       }
-      if($_[2]{info}{title} =~ /[\(\[].+?[\]\)]/) { $_[2]{info}{title} =~ s/([\(\[].+?[\]\)])/\x04$1\x04/; }
+      foreach('title','album','artist') { if($_[2]{info}{$_} =~ /[\(\[].+?[\]\)]/) { $_[2]{info}{$_} =~ s/([\(\[].+?[\]\)])/\x04$1\x04/; } }
       &{$utility{'Fancify_say'}}($_[0],$_[1],"[\x04$_[2]{name}\x04] \x04$_[2]{info}{title}\x04 by \x04$_[2]{info}{artist}\x04 [\x04$_[2]{info}{album}\x04] [$bar]");
     },
     'getInfo' => sub {
@@ -104,7 +104,7 @@ addPlug("Foobar",{
     },
   },
   'commands' => {
-    '^NP(\w+)?$' => {
+    '^NP([\w[^\s]]+)?$' => {
       'tags' => ['utility','media'],
       'description' => "Ges NP info!",
       'example' => "NPCaaz\nNP",
