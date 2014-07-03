@@ -22,7 +22,7 @@ addPlug('NP_Lyrics', {
             print {${$_}{filehandle}} "trackinfo\n";
             &{$utility{'Foobar_getInfo'}};
             &{$utility{'Foobar_npSay'}}($_[1]{irc},$_[2]{where},$_);
-            &{$utility{'Lyrics_show'}}($_[1]{irc}, $_[2]{where}, &{$utility{'Lyrics_get'}}(${$_}{info}{artist},${$_}{info}{title}));
+            &{$utility{'Lyrics_show'}}($_[1]{irc}, $_[2]{where}, &{$utility{'Lyrics_get'}}(${$_}{info}{artist},${$_}{info}{title}), 100);
           }
         }
         if(!$caught) {

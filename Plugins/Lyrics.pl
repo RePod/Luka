@@ -45,7 +45,7 @@ addPlug('Lyrics', {
     'show' => sub {
       # Input: Handle, Where, Lyrics Data, length
       my $length = $_[3];
-      $length = 370 if(!$length);
+      $length = 370 if(!$_[3]);
       if(@{$_[2]}){
         foreach(@{$_[2]}) {
           # Title by ARTIST [url]
@@ -54,7 +54,7 @@ addPlug('Lyrics', {
           foreach(@{${$_}{lyrics}}) {
             $string .= "$_ \x04/\x04 ";
             # Cut the string off at this point, so that you aren't sending more than is possible.
-            if((split //, $string) > 370) { $string =~ s/ \x04\/\x04 $//; $string .= "..."; last; }
+            if((split //, $string) > $length) { $string =~ s/ \x04\/\x04 $//; $string .= "..."; last; }
           }
           # Show it!
           $string =~ s/ \x04\/\x04 $//;
