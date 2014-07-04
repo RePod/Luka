@@ -195,7 +195,6 @@ addPlug('Rock',{
       }
     },
     '^Rock(.+?) add (.*)$' => {
-      'access' => 1,
       'code' => sub {
         my ($group, $line) = ($1,$2);
         $group =~ tr[A-Z][a-z];
