@@ -123,6 +123,7 @@ addPlug('Core_Utilities',{
           return $lk{tmp}{filehandles}{$_};
         }
       }
+      return 0;
     },
     'shuffle' => sub { my $deck = shift; return unless @$deck; my $i = @$deck; while (--$i) { my $j = int rand ($i+1); @$deck[$i,$j] = @$deck[$j,$i]; } }
   }

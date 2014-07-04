@@ -49,7 +49,7 @@ addPlug('Git', {
       'tags' => ['utility'],
       'code' => sub {
         my @output = split /\n|\r/, `git pull`;
-        my $changes = 'No changes made';
+        my $changes = 'No changes made.';
         foreach(@output) {
           chomp($_);
           #  2 files changed, 4 insertions(+), 8 deletions(-)
@@ -57,8 +57,8 @@ addPlug('Git', {
             ($changes = $_) =~ s/^\s|\s$//g;
           }
         }
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Pulled latest updates from >>Github. $changes Reloading.");
-        &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},0);
+        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Pulled latest updates from >>Github. $changes Refreshing.");
+        &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
       }
     },
     '^Git status$' => {

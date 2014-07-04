@@ -182,6 +182,18 @@ addPlug('Rock',{
     }
   },
   'commands' => {
+    '^Transfer Rocks (.+)$' => {
+      'access' =>  1,
+      'code' => sub {
+        my $prefix = $1;
+        foreach $channel (keys %{$lk{data}{plugin}{'Rock'}{rocks}{$_[0]}}) {
+          my @hash = ();
+          foreach(keys %{$lk{data}{plugin}{'Rock'}{rocks}{$_[0]}{$channel}}) { push(@hash,"$_=>\"$lk{data}{plugin}{'Rock'}{rocks}{$_[0]}{$channel}{$_}\""); }
+          lkRaw($_[1]{irc},"PRIVMSG $_[2]{where} :$prefix"."autojoin add $channel");
+          lkRaw($_[1]{irc},"PRIVMSG $_[2]{where} :$prefix! ".'my %rock = ('.(join ', ', @hash).'); %{$lk{data}{plugin}{\'Rock\'}{rocks}{$_[0]}{\''.$channel.'\'}} = %rock; return "Added.";');
+        }
+      }
+    },
     '^Rock(.+?) add (.*)$' => {
       'access' => 1,
       'code' => sub {

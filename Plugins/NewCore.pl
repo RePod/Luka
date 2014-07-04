@@ -31,6 +31,53 @@ addPlug('Core', {
       }
       return 1;
     },
+    'getNetworks' => sub {
+      # Input: None
+      # Output: Array of network
+      my @output = @{$lk{data}{networks}};
+      foreach(@output) { if(&{$utility{'Core_Utilities_getHandle'}}(${$_}{name})) { ${$_}{connected} = 1; } }
+      return \@output;
+    },
+    'getNetworkString' => sub {
+      # Input: Network Hash, Type
+      # Output: True if success
+      # 0: Short
+      # 1: Long
+      my $string = '';
+      my %network = %{$_[0]};
+      if(!$_[1]) {
+        return "\x04$network{name}\x04" if(($network{connected}) && (!$network{disabled}));
+        return "$network{name}" if((!$network{connected}) || ($network{disabled}));
+      }
+      elsif($_[1] == 1) {
+        if($network{connected}) {
+          return "[\x04$network{name}\x04] [Disabled] [$network{host}:$network{port}] [>>".(@{$network{autojoin}}).&{$utility{'Caaz_Utilities_pluralize'}}(' autojoin', @{$network{autojoin}}+0).".]" if($network{disable});
+          return "[\x04$network{name}\x04] [>>Enabled] [$network{host}:$network{port}] [>>".(@{$network{autojoin}}).&{$utility{'Caaz_Utilities_pluralize'}}(' autojoin', @{$network{autojoin}}+0).".]" if(!$network{disable});
+        }
+        else {
+          return "[$network{name}] [Disabled] [$network{host}:$network{port}] [>>".(@{$network{autojoin}}).&{$utility{'Caaz_Utilities_pluralize'}}(' autojoin', @{$network{autojoin}}+0).".]" if($network{disable});
+          return "[$network{name}] [>>Enabled] [$network{host}:$network{port}] [>>".(@{$network{autojoin}}).&{$utility{'Caaz_Utilities_pluralize'}}(' autojoin', @{$network{autojoin}}+0).".]" if(!$network{disable});
+        }
+      }
+      return 0;
+    },
+    'showNetworks' => sub {
+      # Input: Handle, Where, Type
+      # 0: Short
+      # 1: Long
+      my @networks = @{&{$utility{'Core_getNetworks'}}};
+      if(!$_[2]) {
+        my @output = ();
+        my $i = 0;
+        foreach(@networks) { push(@output,"[>>$i: ".&{$utility{'Core_getNetworkString'}}($_,$_[2])."]"); $i++; }
+        &{$utility{'Fancify_say'}}($_[0],$_[1],join " ", @output);
+      }
+      else {
+        my $i = 0;
+        foreach(@networks) { &{$utility{'Fancify_say'}}($_[0],$_[1],">>$i: ".&{$utility{'Core_getNetworkString'}}($_,$_[2])); $i++; }
+      }
+      return 1;
+    },
     'getAllPlugins' => sub {
       # Input: None
       # Output: An array of plugins, sorted by name, filled with info!
@@ -110,13 +157,13 @@ addPlug('Core', {
       'code' => sub { &{$utility{'Core_restart'}}(); }
     },
     '^Plugins (Un)?loaded$' => {
-      'description' => "Lists all Loaded plugins.",
+      'description' => "Lists all Loaded or Unloaded plugins.",
       'tags' => ['utility'],
       'access' => 3,
       'code' => sub { my $un = $1; my $type = 0; $type = 1 if($un); &{$utility{'Core_showPlugins'}}($_[1]{irc},$_[2]{where},$type); }
     },
     '^Plugins (Disable|Enable) (.+)$' => {
-      'description' => "Disables a list of plugins by key.",
+      'description' => "Disables or Enables a list of plugins by key.",
       'tags' => ['utility'],
       'access' => 3,
       'code' => sub {
@@ -130,6 +177,34 @@ addPlug('Core', {
           &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
         }
         else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No plugins affected.'); }
+      }
+    },
+    '^Networks (.+)$' => {
+      'description' => "Lists, disables, or enables networks.",
+      'tags' => ['utility'],
+      'access' => 3,
+      'code' => sub {
+        my $command = $1;
+        if($command =~ /^list( long)?$/i) {
+          my $type = $1;
+          &{$utility{'Core_showNetworks'}}($_[1]{irc},$_[2]{where},1) if(($type) && ($type =~ /long$/i));
+          &{$utility{'Core_showNetworks'}}($_[1]{irc},$_[2]{where}) if((!$type) || ($type =~ /^$/));
+        }
+        elsif($command =~ /^(en|dis)able (.+)$/i) {
+          my ($what,$target) = ($1,$2);
+          my @type = ('Enabled');
+          if($what =~ /^d/i) { @type = ('Disabled',1); }
+          if($lk{data}{networks}[$target]) {
+            if($type[1]) { lkDebug("Disabling."); $lk{data}{networks}[$target]{disable} = 1; }
+            else { delete $lk{data}{networks}[$target]{disable}; }
+            &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$type[0] network \x04$lk{data}{networks}[$target]{name}\x04");
+            # Disconnect/connect code?
+            lkSave();
+          }
+          else {
+            &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"No network with that >>ID.");
+          }
+        }
       }
     },
     '^\! (.+)$' => {
