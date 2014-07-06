@@ -9,8 +9,9 @@ addPlug('Log', {
       # ./Logs/Network/Channel.txt
       # localtime() <nickname> What
       my $channel = $_[1];
-      $channel =~ s/^\#//g; $channel =~ s/\W/_/g;
+      $channel =~ s/\W/_/g;
       foreach('./Logs/', "./Logs/$_[0]/") { if (!-e $_) { mkdir($_); } }
+      $channel =~ s/^\W/\#/g; 
       open FILE, ">>./Logs/$_[0]/\#$channel.txt";
       print FILE localtime()."\t$_[2]\n";
       close FILE;
