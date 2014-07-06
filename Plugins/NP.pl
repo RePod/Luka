@@ -31,7 +31,7 @@ addPlug("Foobar",{
         }
         else { $lk{tmp}{plugin}{'Foobar'}{lastNP}{$_[2]{name}} = $_[2]{info}{title}; }
       }
-      foreach('title','album','artist') { if($_[2]{info}{$_} =~ /[\(\[].+?[\]\)]/) { $_[2]{info}{$_} =~ s/([\(\[].+?[\]\)])/\x04$1\x04/; } }
+      foreach('title','album','artist') { if($_[2]{info}{$_} =~ /[\(\[].+?[\]\)]/) { $_[2]{info}{$_} =~ s/([\(\[].+?[\]\)])/\x04$1\x04/g; } }
       &{$utility{'Fancify_say'}}($_[0],$_[1],"[\x04$_[2]{name}\x04] \x04$_[2]{info}{title}\x04 by \x04$_[2]{info}{artist}\x04 [\x04$_[2]{info}{album}\x04] [$bar]");
     },
     'getInfo' => sub {
@@ -197,6 +197,42 @@ addPlug("Foobar",{
         }
         else {
           &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"No server found with that ID");
+        }
+      }
+    },
+  }
+});
+addPlug('NP_Lyrics', {
+  name => 'Now Playing with Lyrics',
+  description => "Connects the Lyrics plugin with the NP plugin.",
+  creator => 'Caaz',
+  version => '1',
+  dependencies => ['Foobar','Lyrics','Core_Utilities','Core_Command'],
+  commands => {
+    '^NP Lyrics(\w+)?$' => {
+      'tags' => ['utility','media'],
+      'description' => "Ges NP info!",
+      'example' => "NPCaaz\nNP",
+      'code' => sub {
+        my $server = $1;
+        #&{$utility{'Foobar_getInfo'}};
+        $server = $_[2]{username} if(!$server);
+        my $caught = 0;
+        foreach (@{$lk{data}{plugin}{'Foobar'}{servers}}) { if(${$_}{name} =~ /$server/) { &{$lk{plugin}{'Foobar'}{utilities}{connect}}($_); } }
+        foreach(values %{$lk{tmp}{plugin}{'Foobar'}{handles}}) {
+          lkDebug(${$_}{name});
+          if(${$_}{name} =~ /^$server$/i) {
+            $caught++;
+            print {${$_}{filehandle}} "trackinfo\n";
+            &{$utility{'Foobar_getInfo'}};
+            &{$utility{'Foobar_npSay'}}($_[1]{irc},$_[2]{where},$_);
+            my (@info) = (${$_}{info}{artist},${$_}{info}{title});
+            foreach(@info) { $_ =~ s/[\[\(].+?[\]\)]|\x04+|\s+$|^\s+//gs; }
+            &{$utility{'Lyrics_show'}}($_[1]{irc}, $_[2]{where}, &{$utility{'Lyrics_get'}}(@info), 100);
+          }
+        }
+        if(!$caught) {
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"$server not connected"); 
         }
       }
     },

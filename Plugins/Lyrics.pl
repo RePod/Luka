@@ -10,9 +10,12 @@ addPlug('Lyrics', {
       # Input : Artist, Track Name
       # For now, I've only done this with AZLyrics so let's just work with that.
       my @lyrics = ();
+      my @args = @_;
+      foreach(@args) { $_ =~ s/^\s+|\s+$//g; }
+      lkDebug("Checking '$args[0]', '$args[1]'");
       my $search;
       # Set up search string
-      if($_[0] && $_[1]) { $search = "$_[0] $_[1]"; }
+      if($_[0] && $_[1]) { $search = "$args[0] $args[1]"; }
       else { lkDebug("Ya dun goofed. Invalid search paremeters or something."); return 0; }
       # Grab the page.
       my $content = get("http://search.azlyrics.com/search.php?q=$search");
@@ -20,7 +23,7 @@ addPlug('Lyrics', {
       # Look for links to Lyric page.
       while($content =~ /\d+\. \<a href\=\"(.+?)\"\>(.+?)\<\/a\> by \<b\>(.+?)\<\/b\>/sg){
         my @info = ($1,$2,$3);
-        if(($info[2] =~ /$_[0]/i) && ($info[1] =~ /$_[1]/i)) {
+        if(($info[2] =~ /$args[0]/i) && ($info[1] =~ /$args[1]/i)) {
           # Push matching information into an array.
           push(@lyrics, {
             artist => $info[2],
