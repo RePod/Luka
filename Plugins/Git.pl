@@ -24,7 +24,7 @@ addPlug('Git', {
         my $message = $1;
         if(!$message) { $message = 'Automated push from '.hostname(); }
         else { $message =~ s/^\s//g; $message =~ s/\"/\\\"/g; }
-        system('git add -all');
+        system('git add --all');
         system('git commit -m "'.$message.'"');
         ## This doesn't work... it'll try to push but it's not getting output.
         my @output = split /\n|\r/, `git push`;
