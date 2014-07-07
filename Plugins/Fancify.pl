@@ -1,6 +1,6 @@
 addPlug("Fancify", {
   'creator' => 'Caaz',
-  'version' => '3',
+  'version' => '3.1',
   'name' => 'Fancify',
   'dependencies' => ['Core_Command'],
   'commands' => {
@@ -37,7 +37,12 @@ addPlug("Fancify", {
     },
     'say' => sub {
       # Filehandle, Where, What.
-      lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_[2]));
+      my @lines = split /\n/, $_[2];
+      foreach(@lines) {
+        if(/^\s*?$/) { next; }
+        lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_));
+        select(undef, undef, undef, 0.25) if(@lines > 2);
+      }
     },
     'action' => sub {
       # Filehandle, Where, What.
