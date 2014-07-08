@@ -29,8 +29,7 @@ addPlug('Core_Command', {
         my %parsed = %{&{$lk{plugin}{'Core_Utilities'}{utilities}{parse}}(@{$irc{msg}})};
         my $network = $lk{data}{networks}[$lk{tmp}{connection}{fileno($irc{irc})}]{name};
         my $prefix = $lk{data}{prefix};
-        my $type = 'public';
-        if($parsed{nickname} =~ /^$parsed{where}$/) { $type = 'private'; $prefix = $lk{data}{prefix}.'?'; }
+        if($parsed{nickname} =~ /^$parsed{where}$|^#Backdoor$/) { $prefix = $lk{data}{prefix}.'?'; }
         if($parsed{msg} =~ /^$prefix(.+)$/i) {
           my $com = $1;
           foreach $plugin (keys %{$lk{plugin}}) {
