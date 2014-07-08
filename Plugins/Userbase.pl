@@ -141,7 +141,7 @@ addPlug('Userbase', {
         }
       }
     },
-    '^ubRegister (.+)$' => {
+    '^Register (.+)$' => {
       'description' => "Registers a new userbase account.",
       'tags' => ['utility'],
       'code' => sub {
