@@ -1,9 +1,8 @@
-addPlug("count", {
+addPlug("Count", {
   'creator' => 'Caaz',
   'version' => '1',
-  'name' => 'xkcd',
+  'name' => 'Countdown',
   'dependencies' => ['Core_Utilities'],
-  'modules' => ['HTML::Entities', 'LWP::Simple'],
   'utilities' => {
     'down' => sub {
       # Input: Handle, Channel, Comic ID.
@@ -13,7 +12,7 @@ addPlug("count", {
       if($count <= 0) { &{$utility{'Fancify_say'}}($handle,$a[1],">>Go!"); }
       else {
         &{$utility{'Fancify_say'}}($handle,$a[1],">>$count...");
-        addTimer(time+1,{'name'=>$name,'code'=>$utility{"count_down"},'args'=>[$a[0],$a[1],$count]});
+        addTimer(time+1,{'name'=>$name,'code'=>$utility{"Count_down"},'args'=>[$a[0],$a[1],$count]});
       }
       return 1;
     }
@@ -30,7 +29,7 @@ addPlug("count", {
         if($caught) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There's already a countdown here."); }
         else {
           &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Counting down!"); 
-          addTimer(time+1,{'name'=>$name,'code'=>$utility{"count_down"},'args'=>[$_[0],$_[2]{where},$count]});
+          addTimer(time+1,{'name'=>$name,'code'=>$utility{"Count_down"},'args'=>[$_[0],$_[2]{where},$count]});
         }
       }
     }
