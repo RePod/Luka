@@ -51,7 +51,7 @@ addPlug("Encode", {
       'code' => sub {
         my ($encoding, $text) = (lc $1,$2);
         if($utility{'Encode_de'.$encoding}) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},&{$utility{'Encode_de'.$encoding}}($text)); }
-        else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"No deoding with name >>$encoding."); }
+        else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"No decoding with name >>$encoding."); }
       }
     },
     '^Decode$' => {
