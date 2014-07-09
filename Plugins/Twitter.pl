@@ -69,7 +69,7 @@ addPlug('Twitter', {
                 oauth_consumer_key => $lk{data}{plugin}{'Twitter'}{key},
                 oauth_consumer_secret => $lk{data}{plugin}{'Twitter'}{secret},
                 oauth_token_=> $account{twitter}{token},
-                oauth_token_secret => $account{twitter}{token}
+                oauth_token_secret => $account{twitter}{secret}
               );
             }
             $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status} = 1;
@@ -127,11 +127,24 @@ addPlug('Twitter', {
           my $response;
           if($account{twitter}{since_home}) { lkDebug('Using since_home'); $response = $ua->get('https://api.twitter.com/1.1/statuses/home_timeline.json?count=5&since_id='.$account{twitter}{since_home}); }
           else { $response = $ua->get('https://api.twitter.com/1.1/statuses/home_timeline.json?count=5'); }
-          my @tweets = @{decode_json($response->content())};
-          foreach(@tweets) { &{$utility{'Twitter_sayTweet'}}($_[1]{irc},$_[2]{where},$_); }
-          if(!@tweets) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No new tweets since your last check.'); }
-          else { $lk{data}{plugin}{'Userbase'}{users}{$_[0]}[$ubID]{twitter}{since_home} = $tweets[0]{id}; }
-          #&{$utility{"Core_Utility_debugHash"}}(\%home);
+          my $content = decode_json($response->content());
+          lkDebug("Got $content");
+          if($content =~ /^HASH/) {
+            &{$utility{"Core_Utilities_debugHash"}}($content);
+            my %hash = %{$content};
+            foreach(@{$hash{errors}}) {
+              lkDebug($_);
+              &{$utility{"Core_Utilities_debugHash"}}($_);
+            }
+          }
+          else {
+            return 1;
+            my @tweets = @{$content};
+            foreach(@tweets) { &{$utility{'Twitter_sayTweet'}}($_[1]{irc},$_[2]{where},$_); }
+            if(!@tweets) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No new tweets since your last check.'); }
+            else { $lk{data}{plugin}{'Userbase'}{users}{$_[0]}[$ubID]{twitter}{since_home} = $tweets[0]{id}; }
+            #&{$utility{"Core_Utility_debugHash"}}(\%home);
+          }
         }
       }
     },
