@@ -226,22 +226,5 @@ addPlug("Misc_Commands", {
         &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},$pl);
       }
     },
-    '^Meta$' => {
-      'tags' => ['utility'],
-      'description' => "Gets various information about this bot. Caaz's favorite command.",
-      'code' => sub {
-        my @files = (<./Plugins/*.pl>,$0);
-        my %plugins = %{&{$utility{'Core_getAllPlugins'}}};
-        my %count = ('lines'=>0,'comments'=>0);
-        foreach(@files) {
-          open NEW, "<".$_;
-          my @lines = <NEW>;
-          $count{lines} += @lines+0;
-          foreach(@lines) { if($_ =~ /\#/) {$count{comments}++;} }
-          close NEW;
-        }
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"[\x04$lk{version}\x04] (".hostname()." >>$lk{os}) >>$count{lines} lines, >>$count{comments} comments, >>".@{$plugins{loaded}}." plugins loaded, >>".@{$plugins{unloaded}}." plugins not loaded, >>".@files." files.");
-      }
-    }
   }
 });
