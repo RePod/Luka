@@ -28,7 +28,7 @@ addPlug('System', {
       elsif($lk{os} =~ /linux/i) {
         my %system = ();
         my @output = (split ' ', `uname -a`)[0..2];
-        foreach(['name',1],['os',0],['version',2]) { $system{${_}[0]} = $output[${_}[1]];} 
+        foreach(['name',1],['os',0],['version',2]) { $system{${$_}[0]} = $output[${$_}[1]];} 
         # Start working on more linux stuff, possibly with the help of Cinos.
         return \%system;
       }
