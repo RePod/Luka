@@ -14,7 +14,11 @@ addPlug("xkcd", {
       &{$utility{'Core_Utilities_debugHash'}}(\%comic);
       #if($comic{transcript}) { &{$utility{'Fancify_say'}}($_[0],$_[1],"[#$comic{num} $comic{img}] $comic{transcript}"); }
       #else { &{$utility{'Fancify_say'}}($_[0],$_[1],"[#$comic{num} $comic{img}] $comic{alt}"); }
-      &{$utility{'Fancify_say'}}($_[0],$_[1],"[#$comic{num} $comic{img}] $comic{alt}");
+      my $string = "[#$comic{num} ";
+      $string .= $comic{link} if($comic{link});
+      $string .= $comic{img} if(!$comic{link});
+      $string .= "] $comic{alt}";
+      &{$utility{'Fancify_say'}}($_[0],$_[1],$string);
       return 1;
     }
   },
