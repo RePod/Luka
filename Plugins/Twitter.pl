@@ -6,21 +6,20 @@ addPlug('Twitter', {
   'dependencies' => ['Core_Command','Core_Utilities', 'Userbase'],
   'modules' => ['OAuth::Consumer'],
   'utilities' => {
-    'setUA' => sub {
-      # Input: Server Name, Userbase ID
-    },
     'auth' => sub {
-      # Input: Server Name, Nickname
+      # Input: Server Name, Nickname, PIN
       my $handle = &{$utility{'Core_Utilities_getHandle'}}($_[0]);
       my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[1])};
       my $ubID = &{$utility{'Userbase_getID'}}(\%account);
       if(($lk{data}{plugin}{'Twitter'}{key}) && ($lk{data}{plugin}{'Twitter'}{secret})) {
         if($account{name}) {
           if($lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status} == 2) {
-            my ($token, $secret) = $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{ua}->get_access_token();
+            lkDebug("Doing '$_[2]'");
+            my %params = ('oauth_verifier' => $_[2]);
+            my ($token, $secret) = $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{ua}->get_access_token(%params);
             $lk{data}{plugin}{'Userbase'}{users}{$_[0]}[$ubID]{twitter}{token} = $token;
             $lk{data}{plugin}{'Userbase'}{users}{$_[0]}[$ubID]{twitter}{secret} = $secret;
-            &{$utility{'Fancify_say'}}($handle,$_[1],"Set $token and $secret");
+            &{$utility{'Fancify_say'}}($handle,$_[1],">>Success! Logged into Twitter. You're now free to use the twitter commands.");
           }
           else {
             &{$utility{'Fancify_say'}}($handle,$_[1],"You don't need to auth right now.");
@@ -38,7 +37,7 @@ addPlug('Twitter', {
       }
     },
     'set' => sub {
-      # Input: Server Name, Nickname
+      # Input: Server Name, Nickname, make a new url?
       # Output: ID, UA
       # 0 : Failure
       # 1 : Properly set UA.
@@ -63,16 +62,18 @@ addPlug('Twitter', {
             return 1;
           }
           else {
-            $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{ua} = OAuth::Consumer->new(
-              oauth_consumer_key => $lk{data}{plugin}{'Twitter'}{key},
-              oauth_consumer_secret => $lk{data}{plugin}{'Twitter'}{secret},
-              oauth_request_token_url => 'https://api.twitter.com/oauth/request_token',
-              oauth_authorize_url => 'https://api.twitter.com/oauth/authorize',
-              oauth_access_token_url => 'https://api.twitter.com/oauth/access_token'
-            );
-            $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status} = 2;
-            &{$utility{'Fancify_say'}}($handle,$_[1],"Using $lk{data}{plugin}{'Twitter'}{key} and $lk{data}{plugin}{'Twitter'}{secret}");
-            &{$utility{'Fancify_say'}}($handle,$_[1],"You need to authorize your >>Twitter account at ".$lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{ua}->get_request_token());
+            if(!$_[2]) {
+              $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{ua} = OAuth::Consumer->new(
+                oauth_consumer_key => $lk{data}{plugin}{'Twitter'}{key},
+                oauth_consumer_secret => $lk{data}{plugin}{'Twitter'}{secret},
+                oauth_callback => 'oob',
+                oauth_request_token_url => 'https://api.twitter.com/oauth/request_token',
+                oauth_authorize_url => 'https://api.twitter.com/oauth/authorize',
+                oauth_access_token_url => 'https://api.twitter.com/oauth/access_token'
+              );
+              $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status} = 2;
+              &{$utility{'Fancify_say'}}($handle,$_[1],"You need to authorize your >>Twitter account at ".$lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{ua}->get_request_token());
+            }
             return 2;
           }
         }
@@ -98,7 +99,7 @@ addPlug('Twitter', {
         &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Set >>$key to >>$value");
       }
     },
-    '^Twitter Home$' => {
+    '^Twitter$' => {
       'description' => "Gets the latest tweets on your home page. Up to 5 tweets.",
       'access' => 3,
       'code' => sub {
@@ -107,13 +108,13 @@ addPlug('Twitter', {
         }
       }
     },
-    '^Twitter Auth$' => {
+    '^Twitter Auth (.+)$' => {
       'description' => "Gets the latest tweets on your home page. Up to 5 tweets.",
       'access' => 3,
       'code' => sub {
-        if(&{$utility{'Twitter_set'}}($_[0],$_[2]{nickname}) == 2) {
-          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Checking Auth...");
-          &{$utility{'Twitter_auth'}}($_[0],$_[2]{nickname})
+        my $pin = $1;
+        if(&{$utility{'Twitter_set'}}($_[0],$_[2]{nickname},1) == 2) {
+          &{$utility{'Twitter_auth'}}($_[0],$_[2]{nickname},$pin);
         }
       }
     }
