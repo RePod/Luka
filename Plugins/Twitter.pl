@@ -10,6 +10,7 @@ addPlug('Twitter', {
       # Input: Handle, Where, Tweet.
       my %tweet = %{$_[2]};
       $tweet{text} =~ s/\n/ /g;
+      #&{$utility{'Core_Utilities_debugHash'}}($tweet{entities});
       &{$utility{'Fancify_say'}}($_[0],$_[1],"[\@$tweet{user}{screen_name} $tweet{user}{name}] ".decode_entities($tweet{text}));
     },
     'ua' => sub {
@@ -96,7 +97,6 @@ addPlug('Twitter', {
   'commands' => {
     '^Twitter set (.+?) (.+)$' => {
       'description' => "Sets OAuth keys for Twitter usage.",
-      'access' => 3,
       'code' => sub {
         my ($key,$value) = ($1,$2);
         $lk{data}{plugin}{'Twitter'}{$key} = $value;
@@ -105,7 +105,6 @@ addPlug('Twitter', {
     },
     '^Twitter$' => {
       'description' => "Gets the latest tweets on your home page. Up to 5 tweets.",
-      'access' => 3,
       'code' => sub {
         ## Move this to it's own utility.
         if(&{$utility{'Twitter_set'}}($_[0],$_[2]{nickname}) == 1) {
@@ -113,19 +112,13 @@ addPlug('Twitter', {
           my $ubID = &{$utility{'Userbase_getID'}}(\%account);
           my $ua = &{$utility{'Twitter_ua'}}($_[0],$ubID);
           my $response;
-          if($account{twitter}{since_home}) { lkDebug('Using since_home'); $response = $ua->get('https://api.twitter.com/1.1/statuses/home_timeline.json?count=5&since_id='.$account{twitter}{since_home}); }
+          if($account{twitter}{since_home}) { $response = $ua->get('https://api.twitter.com/1.1/statuses/home_timeline.json?count=5&since_id='.$account{twitter}{since_home}); }
           else { $response = $ua->get('https://api.twitter.com/1.1/statuses/home_timeline.json?count=5'); }
           my $content = decode_json($response->content());
           lkDebug("Got $content");
           if($content =~ /^HASH/) {
-            &{$utility{"Core_Utilities_debugHash"}}($content);
             my %hash = %{$content};
-            foreach(@{$hash{errors}}) {
-              my %error = %{$_};
-              lkDebug($_);
-              &{$utility{"Core_Utilities_debugHash"}}($_);
-              &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{nickname},"[>>$error{code}: \x04$error{message}\x04]$account{twitter}{token} - $account{twitter}{secret}");
-            }
+            foreach(@{$hash{errors}}) { my %error = %{$_}; &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{nickname},"[>>$error{code}] $error{message}"); }
             &{$utility{'Twitter_getNewAuth'}}($_[0],$_[2]{nickname},$ubID);
           }
           elsif($content =~ /^ARRAY/) {
@@ -133,24 +126,26 @@ addPlug('Twitter', {
             foreach(@tweets) { &{$utility{'Twitter_sayTweet'}}($_[1]{irc},$_[2]{where},$_); }
             if(!@tweets) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'No new tweets since your last check.'); }
             else { $lk{data}{plugin}{'Userbase'}{users}{$_[0]}[$ubID]{twitter}{since_home} = $tweets[0]{id}; }
-            #&{$utility{"Core_Utility_debugHash"}}(\%home);
           }
         }
       }
     },
     '^Tweet (.+)$' => {
       'description' => "Updates your status on Twitter!",
-      'access' => 3,
       'code' => sub {
         ## Move this to it's own utility.
         my $text = $1;
         if(&{$utility{'Twitter_set'}}($_[0],$_[2]{nickname}) == 1) {
+          my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[2]{nickname})};
+          my $ubID = &{$utility{'Userbase_getID'}}(\%account);
           my $ua = &{$utility{'Twitter_ua'}}($_[0],$ubID);
           my $response;
           if((length $text) < 140) {
-            my %tweet = ('status' => $text);
-            $response = $ua->post('https://api.twitter.com/1.1/statuses/update.json',%tweet);
-            &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'>>Tweeted!');
+            $response = $ua->post('https://api.twitter.com/1.1/statuses/update.json',{'status'=>$text});
+            my $content = decode_json($response->content());
+            my %hash = %{$content};
+            foreach(@{$hash{errors}}) { my %error = %{$_}; &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{nickname},"[>>$error{code}] $error{message}"); }
+            if(!@{$hash{errors}}) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'>>Tweeted!');}
           }
           else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},'Tweet is too long, try again with a shorter tweet.'); }
         }
@@ -158,7 +153,6 @@ addPlug('Twitter', {
     },
     '^Twitter Auth (\d+)$' => {
       'description' => "Authorizes with Twitter using a pin.",
-      'access' => 3,
       'code' => sub {
         my $pin = $1;
         my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[2]{nickname})};
