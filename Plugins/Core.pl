@@ -25,6 +25,7 @@ addPlug('Core_Command', {
   'code' => {
     'irc' => sub {
       my %irc = %{$_[0]};
+      lkDebug($irc{raw});
       if($irc{msg}[1] =~ /^PRIVMSG|NOTICE$/i) {
         my %parsed = %{&{$lk{plugin}{'Core_Utilities'}{utilities}{parse}}(@{$irc{msg}})};
         my $network = $lk{data}{networks}[$lk{tmp}{connection}{fileno($irc{irc})}]{name};
