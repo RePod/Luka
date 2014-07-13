@@ -10,15 +10,15 @@ addPlug('IMDB', {
       #Input: Handle, Where, Search, Limit
       #Output: Hash of Results
       my $searchPage = get('http://www.omdbapi.com/?s='.$_[2]);
-      $searchPage =~ s/[!\P{IsASCII}]//g;
+      $searchPage =~ s/[!\P{IsASCII}]/-/g;
       %results = %{decode_json($searchPage)};
       &{$utility{'Core_Utilities_debugHash'}}(\%results);
       my $i = 0;
       foreach(@{$results{'Search'}}) {
         my $content = get('http://www.omdbapi.com/?i='.${$_}{imdbID});
-        $content =~ s/[!\P{IsASCII}]//g;
+        $content =~ s/[!\P{IsASCII}]/-/g;
         %imdb = %{decode_json($content)};
-        &{$utility{'Fancify_say'}}($_[0],$_[1],"[\x04$imdb{Title} ($imdb{Year})\x04] [$imdb{Runtime}] $imdb{Plot}");
+        &{$utility{'Fancify_say'}}($_[0],$_[1],"[\x04$imdb{Title} ($imdb{Year})\x04] [\x04$imdb{Genre}\x04] [\x04$imdb{imdbRating}/10\x04] [$imdb{Runtime}] $imdb{Plot} ]http://www.imdb.com/title/$imdb{imdbID}]");
         # {"Title":"I, Robot",
         # "Year":"2004",
         # "Rated":"PG-13",
