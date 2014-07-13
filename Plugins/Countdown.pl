@@ -12,7 +12,7 @@ addPlug("Count", {
       if($count <= 0) { &{$utility{'Fancify_say'}}($handle,$a[1],">>Go!"); }
       else {
         &{$utility{'Fancify_say'}}($handle,$a[1],">>$count...");
-        addTimer(time+1,{'name'=>$a[0],'code'=>$utility{"Count_down"},'args'=>[$a[0],$a[1],$count]});
+        addTimer(time+1,{'name'=>'countdown'.$a[0].$a[1],'code'=>$utility{"Count_down"},'args'=>[$a[0],$a[1],$count]});
       }
       return 1;
     }
@@ -26,9 +26,8 @@ addPlug("Count", {
         $count = 15 if($count > 15);
         my $caught = 0;
         foreach $time (keys %{$lk{timer}}) { foreach(@{$lk{timer}{$time}}) { $caught = 1 if(${$_}{name} eq $name); } }
-        if($caught) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There's already a countdown here."); }
-        else {
-          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$count..."); 
+        if(!$caught) {
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"$name >>$count..."); 
           addTimer(time+1,{'name'=>$name,'code'=>$utility{"Count_down"},'args'=>[$_[0],$_[2]{where},$count]});
         }
       }
@@ -53,8 +52,7 @@ addPlug("Count", {
             $count = 15 if($count > 15);
             my $caught = 0;
             foreach $time (keys %{$lk{timer}}) { foreach(@{$lk{timer}{$time}}) { $caught = 1 if(${$_}{name} eq $name); } }
-            if($caught) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There's already a countdown here."); }
-            else {
+            if(!$caught) {
               &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$count..."); 
               addTimer(time+1,{'name'=>$name,'code'=>$utility{"Count_down"},'args'=>[$_[0],$_[2]{where},$count]});
             }
@@ -73,8 +71,7 @@ addPlug("Count", {
         $count = 15 if($count > 15);
         my $caught = 0;
         foreach $time (keys %{$lk{timer}}) { foreach(@{$lk{timer}{$time}}) { $caught = 1 if(${$_}{name} eq $name); } }
-        if($caught) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"There's already a countdown here."); }
-        else {
+        if(!$caught) {
           &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>".&{$utility{'Count_dec2bin'}}($count)."..."); 
           addTimer(time+1,{'name'=>$name,'code'=>$utility{"Count_down"},'args'=>[$_[0],$_[2]{where},$count]});
         }
