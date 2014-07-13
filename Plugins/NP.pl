@@ -119,6 +119,7 @@ addPlug("Foobar",{
           if(${$_}{name} =~ /^$server$/i) {
             $caught++;
             print {${$_}{filehandle}} "trackinfo\n";
+            &{$utility{'Foobar_getInfo'}};
             print {${$_}{filehandle}} "trackinfo\n";
             &{$utility{'Foobar_getInfo'}};
             &{$utility{'Foobar_npSay'}}($_[1]{irc},$_[2]{where},$_);
