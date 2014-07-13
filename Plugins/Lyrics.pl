@@ -18,7 +18,9 @@ addPlug('Lyrics', {
       if($_[0] && $_[1]) { $search = "$args[0] $args[1]"; }
       else { lkDebug("Ya dun goofed. Invalid search paremeters or something."); return 0; }
       # Grab the page.
-      my $content = get("http://search.azlyrics.com/search.php?q=$search");
+      my $ua = LWP::UserAgent->new;
+      $ua->timeout(10);
+      my $content = $ua->get("http://search.azlyrics.com/search.php?q=$search")->decoded_content();
       my $count = 0;
       # Look for links to Lyric page.
       while($content =~ /\d+\. \<a href\=\"(.+?)\"\>(.+?)\<\/a\> by \<b\>(.+?)\<\/b\>/sg){
@@ -35,7 +37,7 @@ addPlug('Lyrics', {
       }
       # If we've got any matches, let's fill out the @lyrics array with actual lyrics! 
       foreach $lyric (@lyrics) {
-        if(get(${$lyric}{url}) =~ /<\!-- start of lyrics -->(.+?)<\!/is){
+        if($ua->get(${$lyric}{url})->decoded_content() =~ /<\!-- start of lyrics -->(.+?)<\!/is){
           my @lines = split /\n|<br \/>/, $1;
           foreach(@lines) { s/<.+?>/\002/g; s/\r|\n//g; }
           @lines = grep !/^$/, @lines;
