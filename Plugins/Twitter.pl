@@ -21,7 +21,7 @@ addPlug('Twitter', {
       # Input: Server Name, Nickname, PIN
       my $handle = &{$utility{'Core_Utilities_getHandle'}}($_[0]);
       my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[1])};
-      my $ubID = &{$utility{'Userbase_getID'}}(\%account);
+      my $ubID = &{$utility{'Userbase_getID'}}($_[0], \%account);
       my $ua = &{$utility{'Twitter_ua'}}($_[0],$ubID);
       if($lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status} == 2) {
         lkDebug("Doing '$_[2]'");
@@ -34,6 +34,14 @@ addPlug('Twitter', {
         return 1;
       }
       else { &{$utility{'Fancify_say'}}($handle,$_[1],"You don't need to auth right now."); return 1; }
+    },
+    'verify' => sub {
+      # Server Name, Nickname, UBID
+      my $handle = &{$utility{'Core_Utilities_getHandle'}}($_[0]);
+      my $ua = &{$utility{'Twitter_ua'}}($_[0],$_[2]);
+      $response = $ua->get('https://api.twitter.com/1.1/account/verify_credentials.json');
+      my %content = %{decode_json($response->content())};
+      &{$utility{'Core_Utilities_debugHash'}}(\%content);
     },
     'getNewAuth' => sub {
       # Server Name, Nickname, UBID
@@ -59,7 +67,7 @@ addPlug('Twitter', {
       # 2 : Set UA, but user needs to authorize.
       my $handle = &{$utility{'Core_Utilities_getHandle'}}($_[0]);
       my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[1])};
-      my $ubID = &{$utility{'Userbase_getID'}}(\%account);
+      my $ubID = &{$utility{'Userbase_getID'}}($_[0], \%account);
       if(($lk{data}{plugin}{'Twitter'}{key}) && ($lk{data}{plugin}{'Twitter'}{secret})) {
         if($account{name}) {
           if(($account{twitter}{token}) && ($account{twitter}{token})) {
@@ -72,6 +80,7 @@ addPlug('Twitter', {
                 oauth_token_=> $account{twitter}{token},
                 oauth_token_secret => $account{twitter}{secret}
               );
+              &{$utility{'Twitter_verify'}}($_[0],$_[1],$ubID); 
             }
             $lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status} = 1;
             ## Insert a check here.
@@ -109,13 +118,12 @@ addPlug('Twitter', {
         ## Move this to it's own utility.
         if(&{$utility{'Twitter_set'}}($_[0],$_[2]{nickname}) == 1) {
           my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[2]{nickname})};
-          my $ubID = &{$utility{'Userbase_getID'}}(\%account);
+          my $ubID = &{$utility{'Userbase_getID'}}($_[0], \%account);
           my $ua = &{$utility{'Twitter_ua'}}($_[0],$ubID);
           my $response;
           if($account{twitter}{since_home}) { $response = $ua->get('https://api.twitter.com/1.1/statuses/home_timeline.json?count=5&since_id='.$account{twitter}{since_home}); }
           else { $response = $ua->get('https://api.twitter.com/1.1/statuses/home_timeline.json?count=5'); }
           my $content = decode_json($response->content());
-          lkDebug("Got $content");
           if($content =~ /^HASH/) {
             my %hash = %{$content};
             foreach(@{$hash{errors}}) { my %error = %{$_}; &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{nickname},"[>>$error{code}] $error{message}"); }
@@ -137,7 +145,7 @@ addPlug('Twitter', {
         my $text = $1;
         if(&{$utility{'Twitter_set'}}($_[0],$_[2]{nickname}) == 1) {
           my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[2]{nickname})};
-          my $ubID = &{$utility{'Userbase_getID'}}(\%account);
+          my $ubID = &{$utility{'Userbase_getID'}}($_[0], \%account);
           my $ua = &{$utility{'Twitter_ua'}}($_[0],$ubID);
           my $response;
           if((length $text) < 140) {
@@ -156,8 +164,7 @@ addPlug('Twitter', {
       'code' => sub {
         my $pin = $1;
         my %account = %{&{$utility{'Userbase_info'}}($_[0],$_[2]{nickname})};
-        my $ubID = &{$utility{'Userbase_getID'}}(\%account);
-        lkDebug($lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status});
+        my $ubID = &{$utility{'Userbase_getID'}}($_[0], \%account);
         if($lk{tmp}{plugin}{'Twitter'}{$_[0]}{$ubID}{status} == 2) { 
           lkDebug("Authorizing...");
           &{$utility{'Twitter_auth'}}($_[0],$_[2]{nickname},$pin);

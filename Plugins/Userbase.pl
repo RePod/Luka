@@ -77,11 +77,13 @@ addPlug('Userbase', {
       return {0=>0};
     },
     'getID' => sub {
-      # Input: Account
+      # Input: Server Name, Account
       # Output: ID
       my$i = 0;
       foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) {
-        if ($_ eq $_[0]) { 
+        lkDebug("Checking ${$_}{currently}");
+        if (${$_}{currently} eq ${$_[1]}{currently}) { 
+          lkDebug("Got a match on $i - ${$_[1]}{currently}");
           return $i;
         }
         $i++;

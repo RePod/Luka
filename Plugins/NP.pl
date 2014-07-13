@@ -14,7 +14,7 @@ addPlug("Foobar",{
           &{$utility{'Foobar_npSay'}}(${$_}{auto}[0],${$_}{auto}[1],$_,1);
         }
       }
-      addTimer(time+20,{'name'=>'np','code'=>$utility{"Foobar_timer"}});
+      addTimer(time+5,{'name'=>'np','code'=>$utility{"Foobar_timer"}});
     },
     'npSay' => sub {
       # Input : IRC handle, where, NP Hash, bool
@@ -119,6 +119,7 @@ addPlug("Foobar",{
           if(${$_}{name} =~ /^$server$/i) {
             $caught++;
             print {${$_}{filehandle}} "trackinfo\n";
+            print {${$_}{filehandle}} "trackinfo\n";
             &{$utility{'Foobar_getInfo'}};
             &{$utility{'Foobar_npSay'}}($_[1]{irc},$_[2]{where},$_);
           }
@@ -149,7 +150,7 @@ addPlug("Foobar",{
             }
             else {
               ${$_}{auto} = [$_[1]{irc},$channel];
-              &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$server will now autopost to $channel (Temporarily, at least. This lasts until the next restart).");
+              &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04$server\x04 will now autopost to $channel (Temporarily, at least. This lasts until the next restart).");
             }
           }
         }

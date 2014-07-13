@@ -41,14 +41,19 @@ addPlug('Core_Command', {
                   if(($lk{tmp}{plugin}{'Core_Command'}{cooldown}{$parsed{username}}{$regex}) && ($lk{tmp}{plugin}{'Core_Command'}{cooldown}{$parsed{username}}{$regex} > time)) { return 1; }
                   else { $lk{tmp}{plugin}{'Core_Command'}{cooldown}{$parsed{username}}{$regex} = time + $lk{plugin}{$plugin}{commands}{$regex}{cooldown}; }
                 }
-                if($command{access}) {
-                  my %account = %{$utility{'Userbase_info'}($network,$parsed{nickname})};
-                  if(($account{access}) && ($account{access} >= $command{access})) {
-                    &{$command{code}}($network,\%irc,\%parsed,$lk{data}{plugin}{$plugin},$lk{tmp}{plugin}{$plugin}) if($command{code});
+                eval {
+                  if($command{access}) {
+                    my %account = %{$utility{'Userbase_info'}($network,$parsed{nickname})};
+                    if(($account{access}) && ($account{access} >= $command{access})) {
+                      &{$command{code}}($network,\%irc,\%parsed,$lk{data}{plugin}{$plugin},$lk{tmp}{plugin}{$plugin}) if($command{code});
+                    }
+                    else { &{$utility{'Fancify_say'}}($irc{irc},$parsed{where},"You don't have enough >>access for this command."); }
                   }
-                  else { &{$utility{'Fancify_say'}}($irc{irc},$parsed{where},"You don't have enough >>access for this command."); }
+                  else { &{$command{code}}($network,\%irc,\%parsed,$lk{data}{plugin}{$plugin},$lk{tmp}{plugin}{$plugin}) if($command{code}); }
+                };
+                if($@) {
+                  &{$utility{'Fancify_say'}}($irc{irc},$parsed{where},"Error [\x04$plugin\x04] $@");
                 }
-                else { &{$command{code}}($network,\%irc,\%parsed,$lk{data}{plugin}{$plugin},$lk{tmp}{plugin}{$plugin}) if($command{code}); }
               }
             }
           }
