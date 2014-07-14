@@ -207,6 +207,11 @@ addPlug("Misc_Commands", {
         }
       },
     },
+    '^rr$' => {
+      'tags' => ['misc','game'],
+      'description' => "Roulette of the russian variety",
+      'code' => sub { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},&{sub {(rand() <= 1/6)?"You >>died":"You >>live"}}); }
+    },
     '^Say (.+)$' => {
       'tags' => ['misc'],
       'description' => "Repeats whatever you want it to say.",
