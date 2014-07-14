@@ -105,6 +105,7 @@ addPlug("Foobar",{
   },
   'commands' => {
     '^NP([\w[^\s]]+)?$' => {
+      cooldown=>3,
       'tags' => ['utility','media'],
       'description' => "Ges NP info!",
       'example' => "NPCaaz\nNP",
