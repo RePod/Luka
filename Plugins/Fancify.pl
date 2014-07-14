@@ -18,11 +18,7 @@ addPlug("Fancify", {
   },
   'utilities' => {
     'main' => sub {
-      my @colors;
-      if($lk{data}{plugins}{'Fancify'}{colors}) {
-        @colors = @{$lk{data}{plugins}{'Fancify'}{colors}};
-      }
-      else { @colors = (14,13); }
+      my @colors = ($lk{data}{plugins}{'Fancify'}{colors})?@{$lk{data}{plugins}{'Fancify'}{colors}}:(14,13);
       my $color = 0;
       my $string = "\cC$colors[0]".$_[0];
       my @string = split //, $string;
@@ -30,7 +26,6 @@ addPlug("Fancify", {
       $string = join "", @string;
       $string =~ s/((?:\#|\@)+[\w\-\/.]+)/\cC$colors[1]$1\cC$colors[0]/g; # Hashtag/Channel coloring
       $string =~ s/([a-z]+:\/\/\S+\.[a-z]{2,6}\/?(?:[\/\w=?]+)?)/\cC$colors[1]$1\cC$colors[0]/gi; # URL coloring.
-      #$string =~ s/\|/\cC$colors[1]\|\cC$colors[0]/g; # Bar coloring.
       $string =~ s/(?:\x05|>>)([\w]+)/\cC$colors[1]$1\cC$colors[0]/g; # >> or \x05 word coloring.
       $string =~ s/\cC\d{1,2}(?:,\d{1,2})?(\cC\d{1,2}(?:,\d{1,2})?)/$1/g; # Remove extra colorcodes.
       return $string;

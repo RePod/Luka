@@ -112,10 +112,8 @@ addPlug('Core_Utilities',{
       # Input: @Msg
       # Output: nickname, username, host, msg, where
       my %return;
-      #Confs!~Confs@such.strange.wow : PRIVMSG : #yugibro : >read review
       ($return{nickname}, $return{username}, $return{host}) = split/\!|\@/, $_[0];
-      if($_[2] =~ /^\#/) { $return{where} = $_[2]; }
-      else { $return{where} = $return{nickname}; }
+      $return{where} = ($_[2] =~ /^\#/)? $_[2] : $return{nickname};
       ($return{msg} = $_[3]) =~ s/\003\d{1,2}(?:\,\d{1,2})?|\02|\017|\003|\x16|\x09|\x13|\x0f|\x15|\x1f//g;
       chomp($return{msg});
       return \%return;

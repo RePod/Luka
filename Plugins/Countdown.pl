@@ -34,6 +34,7 @@ addPlug("Count", {
     },
     '^countdown (\d+) (\d+)$' => {
       'description' => "Starts a countdown with a ready countdown!",
+      'tags' => ['utility'],
       'code' => sub {
         my ($count, $wait) = ($1,$2);
         $lk{tmp}{plugin}{'Countdown'}{$_[0]}{$_[2]{where}}{count} = $count;
@@ -42,7 +43,7 @@ addPlug("Count", {
       }
     },
     '^ready$' => {
-      'description' => "Readies",
+      'tags' => ['utility'],
       'code' => sub {
         if($lk{tmp}{plugin}{'Countdown'}{$_[0]}{$_[2]{where}}{wait}) {
           $lk{tmp}{plugin}{'Countdown'}{$_[0]}{$_[2]{where}}{wait}--;
@@ -64,11 +65,11 @@ addPlug("Count", {
       }
     },
     '^countdown$' => {
-      'description' => "Starts a countdown.",
+      'description' => "Starts a countdown with the default count of 5.",
+      'tags' => ['utility'],
       'code' => sub {
         my $count = 5;
         my $name = 'countdown'.$_[0].$_[2]{where};
-        $count = 15 if($count > 15);
         my $caught = 0;
         foreach $time (keys %{$lk{timer}}) { foreach(@{$lk{timer}{$time}}) { $caught = 1 if(${$_}{name} eq $name); } }
         if(!$caught) {

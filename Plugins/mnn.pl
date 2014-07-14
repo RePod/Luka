@@ -10,12 +10,7 @@ addPlug('Mnn', {
       my $ua = LWP::UserAgent->new();
       my %result = %{decode_json($ua->post('http://mnn.im/s',$_[0])->decoded_content())};
       &{$utility{'Core_Utilities_debugHash'}}($result{url});
-      if($result{status} eq 'success') {
-        return $result{url}{short_url};
-      }
-      else {
-        return "broken.";
-      }
+      return ($result{status} eq 'success')?$result{url}{short_url}:"broken";
     },
   },
   commands => {

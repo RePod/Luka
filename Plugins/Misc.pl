@@ -87,9 +87,7 @@ addPlug("Poll", {
       'code' => sub {
         my %poll = ('creator' => $_[2]{nickname}, 'question' => $1, 'total' => 0);
         if(@{$_[3]{polls}} > 3) { &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Sorry, too many polls exist!"); return 1; }
-        foreach(split /, /, $2) {
-          push(@{$poll{answers}}, {'text' => $_, 'votes' => 0});
-        }
+        foreach(split /, /, $2) { push(@{$poll{answers}}, {'text' => $_, 'votes' => 0}); }
         push(@{$_[3]{polls}}, \%poll);
         &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Created poll! Check the poll IDs with \x04~polls\x04 and vote with \x04~vote PollID Option");
       }
@@ -101,7 +99,7 @@ addPlug("Poll", {
         $poll--;
         if($_[3]{polls}[$poll]) {
           if($_[3]{polls}[$poll]{creator} =~ /^$_[2]{nickname}$/) {
-            &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Closed poll.");#
+            &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Closed poll.");
             delete $_[3]{polls}[$poll];
             @{$_[3]}{polls} = grep(!/^$/i, @{$_[3]}{polls});
           }
@@ -177,30 +175,25 @@ addPlug("Misc_Commands", {
   },
   'commands' => {
     '^Error$' => {
-      'code' => sub {
-        &{$utility{'Blah'}}();
-      }
+      'tags' => ['utility'],
+      'code' => sub { &{$utility{'Blah'}}(); }
     },
     '^Topic (.*)$' => {
       'access' => 3,
       'tags' => ['utility'],
       'description' => "Sets the topic, using Luka's Fancify to pretty it up.",
-      'code' => sub {
-        lkRaw($_[1]{irc},"TOPIC $_[2]{where} :".&{$utility{'Fancify_main'}}($1));
-      }
+      'code' => sub { lkRaw($_[1]{irc},"TOPIC $_[2]{where} :".&{$utility{'Fancify_main'}}($1)); }
     },
     '^Timer (\d+) (.+)$' => {
       'tags' => ['misc','utility'],
-      'description' => "Issues a timer! Available options are say and action.",
+      'description' => "Issues a timer! Eventually this will be useful.",
       'code' => sub {
         my ($time, $command) = ($1,$2);
         if($command =~ /^say (.+)/i) {
           addTimer(time+$time, {
           'name' => "User Timer",
           'code' => sub { 
-            lkDebug($_[1]);
-            my @a = @{$_[1]}; 
-            lkDebug(join ", ", @a); 
+            my @a = @{$_[1]};
             &{$utility{'Fancify_say'}}(@a); 
           },
           'args'=>[$_[1]{irc},$_[2]{where},$1]});

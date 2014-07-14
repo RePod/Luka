@@ -66,9 +66,7 @@ addPlug('Lyrics', {
           &{$utility{'Fancify_say'}}($_[0],$_[1],$string);
         }
       }
-      else {
-        &{$utility{'Fancify_say'}}($_[0],$_[1],"No lyrics found.");
-      }
+      else { &{$utility{'Fancify_say'}}($_[0],$_[1],"No lyrics found."); }
     },
   },
   commands => {
