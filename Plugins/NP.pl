@@ -36,7 +36,7 @@ addPlug("Foobar",{
     },
     'getInfo' => sub {
       while(1) {
-        my @readable = $lk{tmp}{plugin}{'Foobar'}{select}->can_read(1);
+        my @readable = $lk{tmp}{plugin}{'Foobar'}{select}->can_read(.5);
         if(@readable) {
           foreach $handle (@readable) {
             my $raw = readline($handle);
@@ -104,7 +104,7 @@ addPlug("Foobar",{
     },
   },
   'commands' => {
-    '^NP([\w[^\s]]+)?$' => {
+    '^NP([\w\S]+)?$' => {
       cooldown=>3,
       'tags' => ['utility','media'],
       'description' => "Ges NP info!",
