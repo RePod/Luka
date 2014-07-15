@@ -4,21 +4,31 @@ addPlug("Fancify", {
   'name' => 'Fancify',
   'dependencies' => ['Core_Command'],
   'commands' => {
-    '^Fancify (\d{1,2}, \d{1,2})$' => {
+    '^GlobalFancy (\d{1,2},\s*\d{1,2})$' => {
       'description' => "Changes Fancify colors.",
       'tags' => ['utility'],
       'access' => 3,
       'code' => sub {
-        my @colors = split /\, /, $1;
-        foreach(@colors) { $_ = '0'.$_ if($_<10); }
+        my @colors = split /\,\s*/, $1;
+        foreach(@colors) { $_ = '0'.$_ if(($_<10) and ($_ !~ /^0/)); }
         @{$lk{data}{plugins}{'Fancify'}{colors}} = @colors;
-        &{$lk{plugin}{"Fancify"}{utilities}{say}}($_[1]{irc},$_[2]{where},"Updated colors >>This is what you can expect things to \x04look like\x04.");
+        &{$lk{plugin}{"Fancify"}{utilities}{say}}($_[1]{irc},$_[2]{where},"Updated colors >>globally.");
+      }
+    },
+    '^Fancy (\d{1,2},\s*\d{1,2})$' => {
+      'description' => "Changes Fancify colors for a specific channel.",
+      'tags' => ['utility'],
+      'code' => sub {
+        my @colors = split /\,\s*/, $1;
+        foreach(@colors) { $_ = '0'.$_ if(($_<10) and ($_ !~ /^0/)); }
+        @{$lk{data}{plugins}{'Fancify'}{$_[2]{where}}} = @colors;
+        &{$lk{plugin}{"Fancify"}{utilities}{say}}($_[1]{irc},$_[2]{where},"Updated colors for $_[2]{where}!");
       }
     }
   },
   'utilities' => {
     'main' => sub {
-      my @colors = ($lk{data}{plugins}{'Fancify'}{colors})?@{$lk{data}{plugins}{'Fancify'}{colors}}:(14,13);
+      my @colors = ($lk{data}{plugins}{'Fancify'}{colors})?@{$lk{data}{plugins}{'Fancify'}{colors}}:($_[1])?(@{$_[1]}):(14,13);
       my $color = 0;
       my $string = "\cC$colors[0]".$_[0];
       my @string = split //, $string;
@@ -35,7 +45,7 @@ addPlug("Fancify", {
       my @lines = split /\n/, $_[2];
       foreach(@lines) {
         if(/^\s*?$/) { next; }
-        lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_));
+        lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_,($lk{data}{plugins}{'Fancify'}{$_[1]})?$lk{data}{plugins}{'Fancify'}{$_[1]}:(0,0)));
         select(undef, undef, undef, 0.25) if(@lines > 2);
       }
     },
