@@ -13,6 +13,9 @@ addPlug('IMDB', {
       $searchPage =~ s/[!\P{IsASCII}]/-/g;
       %results = %{decode_json($searchPage)};
       &{$utility{'Core_Utilities_debugHash'}}(\%results);
+      if($results{'Error'}) {
+        &{$utility{'Fancify_say'}}($_[0],$_[1],$results{'Error'});
+      }
       my $i = 0;
       foreach(@{$results{'Search'}}) {
         my $content = get('http://www.omdbapi.com/?i='.${$_}{imdbID});
