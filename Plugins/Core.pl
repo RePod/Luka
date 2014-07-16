@@ -25,7 +25,6 @@ addPlug('Core_Command', {
   'code' => {
     'irc' => sub {
       my %irc = %{$_[0]};
-      lkDebug($irc{raw});
       if($irc{msg}[1] =~ /^PRIVMSG|NOTICE$/i) {
         my %parsed = %{&{$lk{plugin}{'Core_Utilities'}{utilities}{parse}}(@{$irc{msg}})};
         my $network = $lk{data}{networks}[$lk{tmp}{connection}{fileno($irc{irc})}]{name};
@@ -52,7 +51,7 @@ addPlug('Core_Command', {
                   else { &{$command{code}}($network,\%irc,\%parsed,$lk{data}{plugin}{$plugin},$lk{tmp}{plugin}{$plugin}) if($command{code}); }
                 };
                 if($@) {
-                  &{$utility{'Fancify_say'}}($irc{irc},$parsed{where},"Error [\x04$plugin\x04] $@");
+                  &{$utility{'Fancify_say'}}($irc{irc},$parsed{where},"[>>Error!\x04$plugin\x04\@\x04/$regex/i\x04] $@");
                 }
               }
             }

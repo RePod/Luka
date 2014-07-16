@@ -45,7 +45,7 @@ addPlug("Fancify", {
       my @lines = split /\n/, $_[2];
       foreach(@lines) {
         if(/^\s*?$/) { next; }
-        lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_,($lk{data}{plugins}{'Fancify'}{$_[1]})?$lk{data}{plugins}{'Fancify'}{$_[1]}:(0,0)));
+        lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_,($lk{data}{plugins}{'Fancify'}{$_[1]})?$lk{data}{plugins}{'Fancify'}{$_[1]}:(14,13)));
         select(undef, undef, undef, 0.25) if(@lines > 2);
       }
     },

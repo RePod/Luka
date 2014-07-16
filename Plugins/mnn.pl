@@ -8,7 +8,7 @@ addPlug('Mnn', {
   utilities => {
     'shorten' => sub {
       my $ua = LWP::UserAgent->new();
-      my %result = %{decode_json($ua->post('http://mnn.im/s',$_[0])->decoded_content())};
+      my %result = %{decode_json($ua->post('http://mnn.im/s',Content=>$_[0])->decoded_content())};
       &{$utility{'Core_Utilities_debugHash'}}($result{url});
       return ($result{status} eq 'success')?$result{url}{short_url}:"broken";
     },

@@ -178,6 +178,20 @@ addPlug("Misc_Commands", {
       'tags' => ['utility'],
       'code' => sub { &{$utility{'Blah'}}(); }
     },
+    '^CCC (.*)$' => {
+      code => sub {
+        my $ua = LWP::UserAgent->new;
+        $ua->timeout(5);
+        $ua->show_progress(1);
+        my $url = $1; if($url !~ /^http/i) {$url = "http://".$url; }
+        my $response = $ua->get($url);
+        if($response->is_success) {
+          if($response->decoded_content =~ /Content Restricted/) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04Can Caaz Connect?\x04 >>Nope, content filtered."); } 
+          else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04Can Caaz Connect?\x04 >>Yes!"); }
+        }
+        else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04Can Caaz Connect?\x04 >>Nope, it timed out."); }
+      }
+    },
     '^Topic (.*)$' => {
       'access' => 3,
       'tags' => ['utility'],
