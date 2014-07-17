@@ -9,37 +9,44 @@ addPlug('Insult', {
     'parse' => sub {
       my $text = $_[0];
       my %resources = %{$lk{plugin}{'Insult'}{resources}};
-      while($text =~ /(?:\{((?:.+?\|)+.+?)\})/) {
-        my $pick = $1;
-        my @options = split /\|/, $pick;
-        $pick =~ s/(\W)/\\$1/g;
-        $text =~ s/\{$pick\}/\{$options[rand @options]\}/;
-      }
-      while($text =~ /(?:\{(.+?)\})/) {
-        my $loc = $1;
-        my $mod;
-        if($loc =~ /\#(.+)$/) { $mod = $1; }
-        my $actual = $loc;
-        $actual =~ s/\#.+$//g;
-        my @args = split /\./, $actual;
-        my $structure = '{'.(join '}{', @args).'}';
-        my $result = eval('$resources'.$structure);
-        if($@) { lkDebug($structure); return '[Error]'; }
-        if($result =~ /^ARRAY/) {
-          my $chosen = ${$result}[rand @{$result}];
-          if($chosen =~ /^ARRAY/) { $chosen = ${$chosen}[rand @{$chosen}]; }
-          if($mod) {
-            if($mod =~ /pluralize/) { $chosen = &{$utility{'Caaz_Utilities_pluralize'}}($chosen, 2); }
-          }
-          $text =~ s/\{$loc\}/$chosen/;
+      my $parsing = 1;
+      while ($parsing) {
+        $parsing = 0;
+        while($text =~ /(?:\[(.+?)\])/) {
+          $parsing = 1;
+          my $pick = $1;
+          my @options = split /\|/, $pick;
+          $pick =~ s/(\W)/\\$1/g;
+          $text =~ s/\[$pick\]/$options[rand @options]/;
         }
-        else { $text =~ s/\{$loc\}/\($loc HAD ERRARS\)/; last; }
-      }
-      while($text =~ /(?:\[(.+?)\])/) {
-        my $pick = $1;
-        my @options = split /\|/, $pick;
-        $pick =~ s/(\W)/\\$1/g;
-        $text =~ s/\[$pick\]/$options[rand @options]/;
+        while($text =~ /(?:\{((?:.+?\|)+.+?)\})/) {
+          $parsing = 1;
+          my $pick = $1;
+          my @options = split /\|/, $pick;
+          $pick =~ s/(\W)/\\$1/g;
+          $text =~ s/\{$pick\}/\{$options[rand @options]\}/;
+        }
+        while($text =~ /(?:\{(.+?)\})/) {
+          $parsing = 1;
+          my $loc = $1;
+          my $mod;
+          if($loc =~ /\#(.+)$/) { $mod = $1; }
+          my $actual = $loc;
+          $actual =~ s/\#.+$//g;
+          my @args = split /\./, $actual;
+          my $structure = '{'.(join '}{', @args).'}';
+          my $result = eval('$resources'.$structure);
+          if($@) { lkDebug(">>>>$text"); lkDebug(">>$structure"); return '[Error]'; }
+          if($result =~ /^ARRAY/) {
+            my $chosen = ${$result}[rand @{$result}];
+            if($chosen =~ /^ARRAY/) { $chosen = ${$chosen}[rand @{$chosen}]; }
+            if($mod) {
+              if($mod =~ /pluralize/) { $chosen = &{$utility{'Caaz_Utilities_pluralize'}}($chosen, 2); }
+            }
+            $text =~ s/\{$loc\}/$chosen/;
+          }
+          else { $text =~ s/\{$loc\}/\($loc HAD ERRARS\)/; last; }
+        }
       }
       $text =~ s/^([\w']+)/\u\L$1/g;
       return $text;

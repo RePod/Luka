@@ -40,9 +40,6 @@ addPlug("Fancify", {
       if($_[1]) { @colors = @{$_[1]}; }
       elsif($lk{data}{plugins}{'Fancify'}{colors}) { @colors = @{$lk{data}{plugins}{'Fancify'}{colors}}; }
       else { @colors = (14,13); }
-      #($_[1])?(@{$_[1]}):($lk{data}{plugins}{'Fancify'}{colors})?(@{$lk{data}{plugins}{'Fancify'}{colors}}):[14,13];
-      lkDebug("Using @colors");
-      #my @colors = ($lk{data}{plugins}{'Fancify'}{colors})?@{$lk{data}{plugins}{'Fancify'}{colors}}:($_[1])?@{$_[1]}:(14,13);
       my $color = 0;
       my $string = "\cC$colors[0]".$_[0];
       my @string = split //, $string;
@@ -59,10 +56,7 @@ addPlug("Fancify", {
       my @lines = split /\n/, $_[2];
       foreach(@lines) {
         if(/^\s*?$/) { next; }
-        lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_,
-        ($lk{data}{plugins}{'Fancify'}{$_[1]})?
-          $lk{data}{plugins}{'Fancify'}{$_[1]}:($lk{data}{plugins}{'Fancify'}{colors})?
-            $lk{data}{plugins}{'Fancify'}{colors}:0));
+        lkRaw($_[0],"PRIVMSG $_[1] :".&{$lk{plugin}{'Fancify'}{utilities}{main}}($_,($lk{data}{plugins}{'Fancify'}{$_[1]})?$lk{data}{plugins}{'Fancify'}{$_[1]}:($lk{data}{plugins}{'Fancify'}{colors})?$lk{data}{plugins}{'Fancify'}{colors}:0));
         select(undef, undef, undef, 0.25) if(@lines > 2);
       }
     },
