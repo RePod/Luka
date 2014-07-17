@@ -34,7 +34,7 @@ addPlug('Stalk', {
         my $fname = "Scr-".(time);
         if($lk{os} =~ /MSWin32/) {
           system('"Resources/nircmd.exe" savescreenshot "C:/Users/%username%/Dropbox/Public/Screenshots/'.$fname.'.jpg"');
-          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Screenshot from ". hostname() .". ".&{$utility{'Mnn_shorten'}}('https://dl.dropboxusercontent.com/u/9305622/Screenshots/Scr-'.$fname.".jpg"));
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Screenshot from ". hostname() .". ".&{$utility{'Mnn_shorten'}}('https://dl.dropboxusercontent.com/u/9305622/Screenshots/'.$fname.".jpg"));
         }
       }
     }

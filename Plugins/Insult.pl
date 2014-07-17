@@ -63,7 +63,7 @@ addPlug('Insult', {
         foreach(0..$count) {
           if($_ > 0) {
             if(rand > .8) { $string .= $utility{'Insult_tumblr'}(0,($_ == 0)? 1:0).'. '; }
-            else { $string .= $utility{'Insult_parse'}('{statementToldYouTo} {statements} '); }
+            else { $string .= $utility{'Insult_parse'}('{statementToldYouTo} {insults.statements} '); }
           }
           else { $string .= $utility{'Insult_parse'}('{statements} '); }
         }

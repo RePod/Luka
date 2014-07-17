@@ -36,20 +36,10 @@ addPlug("Fancify", {
   },
   'utilities' => {
     'main' => sub {
-      my @colors = (14,13);
-      if($_[1]) {
-        lkDebug("Custom");
-        @colors = @{$_[1]};
-      }
-      else {
-        if($lk{data}{plugins}{'Fancify'}{colors}) {
-          @colors = @{$lk{data}{plugins}{'Fancify'}{colors}};
-          lkDebug("Custom Global");
-        }
-        else {
-          lkDebug("Default");
-        }
-      }
+      my @colors ;
+      if($_[1]) { @colors = @{$_[1]}; }
+      elsif($lk{data}{plugins}{'Fancify'}{colors}) { @colors = @{$lk{data}{plugins}{'Fancify'}{colors}}; }
+      else { @colors = (14,13); }
       #($_[1])?(@{$_[1]}):($lk{data}{plugins}{'Fancify'}{colors})?(@{$lk{data}{plugins}{'Fancify'}{colors}}):[14,13];
       lkDebug("Using @colors");
       #my @colors = ($lk{data}{plugins}{'Fancify'}{colors})?@{$lk{data}{plugins}{'Fancify'}{colors}}:($_[1])?@{$_[1]}:(14,13);
