@@ -73,14 +73,8 @@ addPlug('Insult', {
   },
   'resources' => {
     alignments => [
-      [
-        ["andro", "anthro", "demi", "gender", "gray", "gyne", "pomo", "skolio", "tulpa"],
-        ["amorous", "romantic", "platonic", "sensual", "sexual", '']
-      ],
-      [
-        ["a", "bi", "demi", "inter", "multi", "non", "omni", "pan", "para", "poly", "trans"],
-        ["ethnic", "gender", "queer", "racial", "romantic", "sensual", "sexual", "species","post"]
-      ]
+      ['androamorous','androromantic','androplatonic','androsensual','androsexual','andro','anthroamorous','anthroromantic','anthroplatonic','anthrosensual','anthrosexual','anthro','demiamorous','demiromantic','demiplatonic','demisensual','demisexual','demi','genderamorous','genderromantic','genderplatonic','gendersensual','gendersexual','gender','grayamorous','grayromantic','grayplatonic','graysensual','graysexual','gray','gyneamorous','gyneromantic','gyneplatonic','gynesensual','gynesexual','gyne','pomoamorous','pomoromantic','pomoplatonic','pomosensual','pomosexual','pomo','skolioamorous','skolioromantic','skolioplatonic','skoliosensual','skoliosexual','skolio','tulpaamorous','tulparomantic','tulpaplatonic','tulpasensual','tulpasexual','tulpa'],
+      ['aethnic','agender','aqueer','aracial','aromantic','asensual','asexual','aspecies','apost','biethnic','bigender','biqueer','biracial','biromantic','bisensual','bisexual','bispecies','bipost','demiethnic','demigender','demiqueer','demiracial','demiromantic','demisensual','demisexual','demispecies','demipost','interethnic','intergender','interqueer','interracial','interromantic','intersensual','intersexual','interspecies','interpost','multiethnic','multigender','multiqueer','multiracial','multiromantic','multisensual','multisexual','multispecies','multipost','nonethnic','nongender','nonqueer','nonracial','nonromantic','nonsensual','nonsexual','nonspecies','nonpost','omniethnic','omnigender','omniqueer','omniracial','omniromantic','omnisensual','omnisexual','omnispecies','omnipost','panethnic','pangender','panqueer','panracial','panromantic','pansensual','pansexual','panspecies','panpost','paraethnic','paragender','paraqueer','pararacial','pararomantic','parasensual','parasexual','paraspecies','parapost','polyethnic','polygender','polyqueer','polyracial','polyromantic','polysensual','polysexual','polyspecies','polypost','transethnic','transgender','transqueer','transracial','transromantic','transsensual','transsexual','transspecies','transpost']
     ],
     privileged => {
       nouns => ["able-body", "binary", "cis", "cisgender", "cishet", "gender", "hetero", "male", "middle class", "non-ethnic", "smallfat", "thin", "uterus-bearer", "white", "white womyn"],
@@ -118,7 +112,7 @@ addPlug('Insult', {
       adjectives => ["antediluvian", "awful", "body-shaming", "chauvinistic", "ciscentric", "close-minded", "deluded", "entitled", "fedora-wearing", "fucking", "goddamn", "heteropatriarchal", "ignorant", "inconsiderate", "insensitive", "intolerant", "judgmental", "misogynistic", "nphobic", "oppressive", "pathetic", "patriarchal", "racist", "rape-culture-supporting", "worthless"], # phobias...
       nouns => ["MRA", "TERF", "ableist", "ageist", "anti-feminist", "asshole", "assimilationist", "basement dweller", "bigot", "binarist", "brogrammer", "carnist", "chauvinist", "cissexist", "classist", "cracker", "creep", "dudebro", "essentialist", "fascist", "feminazi", "femscum", "hitler", "kyriarchist", "loser", "lowlife", "misogynist", "mouthbreather", "nazi", "neckbeard", "oppressor", "patriarchist", "pedophile", "piece of shit", "radscum", "rape-apologist", "rapist", "redditor", "scum", "sexist", "shit stain", "singletist", "subhuman", "traditionalist", "transmisogynist", "troll", "truscum", "virgin"]
     },
-    intros => ["[TW: [numbers|words]]", "can we talk about this?", "first off:", "for the love of god.", "girl, please.", "i don't [fucking] care anymore.", "i don't even.", "i'm going to get hate for this but", "just a friendly reminder:", "just... stop.", "let me make this [abundantly] clear:", "no. just no.", "oh. my. god.", "omg", "please [fucking] stop.", "seriously?", "this. is. NOT. okay.", "wow. just. wow.", "you know what? fuck it."],
+    intros => ["can we talk about this?", "first off:", "for the love of god.", "girl, please.", "i don't [fucking] care anymore.", "i don't even.", "i'm going to get hate for this but", "just a friendly reminder:", "just... stop.", "let me make this [abundantly] clear:", "no. just no.", "oh. my. god.", "omg", "please [fucking] stop.", "seriously?", "this. is. NOT. okay.", "wow. just. wow.", "you know what? fuck it."],
     rawKins => ["cat", "demon", "dog", "dolphin", "dragon", "fox", "goat", "other", "poly", "rabbit", "wolf"],
     marginalized => {
       verbs => [
@@ -149,7 +143,7 @@ addPlug('Insult', {
         ["stigmatize", "stigmatizing", "stigmatization"]
       ],
       nouns => ["CAFAB", "CAMAB", "PoC", "QTPOC", "WoC", "ace", "agnostic", "ally", "amputee", "atheist", "cross-dresser", "equalist", "fatty", "female", "feminist", "freeganist", "furry", "headmate", "ladytype", "little person", "minority", "native american", "princex", "radfem", "survivor", "transman", "transnormative", "transwoman", "vegan", "vegetarian", "victim", "womyn", "wymyn"],
-      adjectives => ["LGBTQIAP+", "androgyne", "androphile", "asian", "bear", "bi", "black", "celestial", "chubby", "closet", "curvy", "dandy-femme", "deathfat", "demi", "differently abled", "disabled", "ethnic", "fat", "femme", "freebleeding", "genderfluid", "genderfuck", "genderless", "genderqueer", "gynephile", "hijra", "latin@", "metrosexual", "multigender", "non-gender", "non-white", "obese", "queer", "skinny", "smallfat", "therian", "thin", "third-gender", "trans*", "transabled", "two-spirit", "underprivileged"],
+      adjectives => ["LGBTQIAP+", "androgyne", "androphile", "asian", "bear", "bi", "black", "celestial", "chubby", "closet", "curvy", "dandy-femme", "deathfat", "demi", "differently abled", "disabled", "ethnic", "fat", "femme", "freebleeding", "genderfluid", "genderfuck", "genderless", "genderqueer", "gynephile", "hijra", "latino","latina", "metrosexual", "multigender", "non-gender", "non-white", "obese", "queer", "skinny", "smallfat", "therian", "thin", "third-gender", "trans*", "transabled", "two-spirit", "underprivileged"],
     },
     personalities => [
       ["", "-aligned", "-associating", "-identifying", "-type", "-supporting"],
