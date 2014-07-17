@@ -12,7 +12,7 @@ addPlug('Insult', {
       while($text =~ /(?:\{((?:.+?\|)+.+?)\})/) {
         my $pick = $1;
         my @options = split /\|/, $pick;
-        $pick =~ s/\|/\\\|/g;
+        $pick =~ s/(\W)/\\$1/g;
         $text =~ s/\{$pick\}/\{$options[rand @options]\}/;
       }
       while($text =~ /(?:\{(.+?)\})/) {
@@ -63,7 +63,7 @@ addPlug('Insult', {
         foreach(0..$count) {
           if($_ > 0) {
             if(rand > .8) { $string .= $utility{'Insult_tumblr'}(0,($_ == 0)? 1:0).'. '; }
-            else { $string .= $utility{'Insult_parse'}('{statementToldYouTo} {insults.statements} '); }
+            else { $string .= $utility{'Insult_parse'}('{statementToldYouTo} {insults.statements}. '); }
           }
           else { $string .= $utility{'Insult_parse'}('{statements} '); }
         }
@@ -114,6 +114,7 @@ addPlug('Insult', {
     },
     intros => ["can we talk about this?", "first off:", "for the love of god.", "girl, please.", "i don't [fucking] care anymore.", "i don't even.", "i'm going to get hate for this but", "just a friendly reminder:", "just... stop.", "let me make this [abundantly] clear:", "no. just no.", "oh. my. god.", "omg", "please [fucking] stop.", "seriously?", "this. is. NOT. okay.", "wow. just. wow.", "you know what? fuck it."],
     rawKins => ["cat", "demon", "dog", "dolphin", "dragon", "fox", "goat", "other", "poly", "rabbit", "wolf"],
+    kins => ["catkin", "demonkin", "dogkin", "dolphinkin", "dragonkin", "foxkin", "goatkin", "otherkin", "polykin", "rabbitkin", "wolfkin"],
     marginalized => {
       verbs => [
         ["abuse", "abusing", "abuse"],
