@@ -39,7 +39,7 @@ addPlug('Insult', {
         my $pick = $1;
         my @options = split /\|/, $pick;
         $pick =~ s/(\W)/\\$1/g;
-        $text =~ s/\[$pick\]/\x02$options[rand @options]\x02/;
+        $text =~ s/\[$pick\]/$options[rand @options]/;
       }
       $text =~ s/^([\w']+)/\u\L$1/g;
       return $text;
@@ -62,16 +62,10 @@ addPlug('Insult', {
         $string .= $utility{'Insult_parse'}('{presentations}. ') if(rand > .5);
         foreach(0..$count) {
           if($_ > 0) {
-            if(rand > .6) {
-              $string .= $utility{'Insult_tumblr'}(0,($_ == 0)? 1:0).'. ';
-            }
-            else { 
-              $string .= $utility{'Insult_parse'}('{statementToldYouTo} {statements} ');
-            }
+            if(rand > .8) { $string .= $utility{'Insult_tumblr'}(0,($_ == 0)? 1:0).'. '; }
+            else { $string .= $utility{'Insult_parse'}('{statementToldYouTo} {statements} '); }
           }
-          else {
-            $string .= $utility{'Insult_parse'}('{statements} ');
-          }
+          else { $string .= $utility{'Insult_parse'}('{statements} '); }
         }
         return $utility{'Insult_parse'}("{intros} ").$string.$utility{'Insult_parse'}("{conclusions}");
       }
