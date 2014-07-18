@@ -52,15 +52,16 @@ addPlug('Insult', {
       return $text;
     },
     'tumblr' => sub {
-      # Input: Type
-      # 0 => Targetted
+      # Input: Type,
+      # 0 => You/Nick
       # 1 => Rant
       # Output: Text returned
       if((!$_[0]) or ($_[0] == 0)) {
-        $string = ($_[1])?"{insults.statements}, you ":"";
+        $name = ($_[2])?$_[2].'.':'you';
+        $string = ($_[1])?"{insults.statements}, $name ":"";
         $string .= '{insults.adjectives} ' if(rand > .3);
         $string = (rand > .3)?$string.'{marginalized.nouns|marginalized.adjectives}-{marginalized.verbs} ':$string."you ";
-        $string .= '{privileged.nouns}-{privileged.adjectives} {insults.nouns}';
+        $string .= '{privileged.nouns}-{privileged.adjectives} {insults.nouns}!';
         return $utility{'Insult_parse'}($string);
       }
       elsif($_[0] == 1) {
@@ -181,6 +182,10 @@ addPlug('Insult', {
     '^Insult$' => {
       'description' => "Generates a tumblr inspired insult.",
       'code' => sub { $utility{'Fancify_say'}($_[1]{irc},$_[2]{where},$utility{'Insult_tumblr'}(0,1)); }
+    },
+    '^Insult (.+)$' => {
+      'description' => "Generates a tumblr inspired insult towards someone.",
+      'code' => sub { my $target = $1; $utility{'Fancify_say'}($_[1]{irc},$_[2]{where},$utility{'Insult_tumblr'}(0,1,$target)); }
     },
     '^Rant$' => {
       'description' => "Generates a tumblr inspired rant.",
