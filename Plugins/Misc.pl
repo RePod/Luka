@@ -39,6 +39,7 @@ addPlug("Caaz_Utilities", {
       my %irc = %{$_[0]};
       if($irc{msg}[1] =~ /^invite$/i) {
         push(@{$lk{data}{networks}[$lk{tmp}{connection}{fileno($irc{irc})}]{autojoin}}, $irc{msg}[3]);
+        sleep(2);
         lkRaw($irc{irc},"JOIN $irc{msg}[3]");
         &{$utility{'Fancify_say'}}($irc{irc}, $irc{msg}[3], "[Invited by \x04$irc{msg}[0]\x04] This channel is added to >>autojoin. If you ever wish to remove me, simply kick me and I won't be coming back. To see command listing, check out >>help. Command prefix is \x04$lk{data}{prefix}\x04 Better learn regex.");
         #&{$utility{'Fancify_say'}}($irc{irc}, (split /\!|\@/, $irc{msg}[0])[0], "Memo Caaz if you want me in $irc{msg}[3].");
