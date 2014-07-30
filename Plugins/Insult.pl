@@ -180,14 +180,17 @@ addPlug('Insult', {
   },
   'commands' => {
     '^Insult$' => {
+      'cooldown' => 2,
       'description' => "Generates a tumblr inspired insult.",
       'code' => sub { $utility{'Fancify_say'}($_[1]{irc},$_[2]{where},$utility{'Insult_tumblr'}(0,1)); }
     },
     '^Insult (.+)$' => {
+      'cooldown' => 2,
       'description' => "Generates a tumblr inspired insult towards someone.",
       'code' => sub { my $target = $1; $utility{'Fancify_say'}($_[1]{irc},$_[2]{where},$utility{'Insult_tumblr'}(0,1,$target)); }
     },
     '^Rant$' => {
+      'cooldown' => 3,
       'description' => "Generates a tumblr inspired rant.",
       'code' => sub { $utility{'Fancify_say'}($_[1]{irc},$_[2]{where},$utility{'Insult_tumblr'}(1)); }
     },
