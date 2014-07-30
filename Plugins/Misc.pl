@@ -222,7 +222,7 @@ addPlug("Misc_Commands", {
     '^Say (.+)$' => {
       'tags' => ['misc'],
       'description' => "Repeats whatever you want it to say.",
-      'code' => sub { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},$1); }
+      'code' => sub { my $text = $1; $text =~ s/\\x04/\x04/g; &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},$text); }
     },
     '^Action (.+)$' => {
       'tags' => ['misc'],
