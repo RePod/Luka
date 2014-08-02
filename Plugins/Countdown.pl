@@ -38,8 +38,8 @@ addPlug("Count", {
       'code' => sub {
         my ($count, $wait) = ($1,$2);
         $lk{tmp}{plugin}{'Countdown'}{$_[0]}{$_[2]{where}}{count} = $count;
-        $lk{tmp}{plugin}{'Countdown'}{$_[0]}{$_[2]{where}}{wait} = $wait;
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Waiting for >>$wait ".&{$utility{'Caaz_Utilities_pluralize'}}('user',$wait)." to use the >>ready command!");
+        $lk{tmp}{plugin}{'Countdown'}{$_[0]}{$_[2]{where}}{wait} = ($wait<=5)?$wait:5;
+        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Waiting for >>$lk{tmp}{plugin}{'Countdown'}{$_[0]}{$_[2]{where}}{wait} ".&{$utility{'Caaz_Utilities_pluralize'}}('user',$wait)." to use the >>ready command!");
       }
     },
     '^ready$' => {
