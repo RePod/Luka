@@ -71,7 +71,7 @@ addPlug("Foobar",{
       # Input: hash!
       if($lk{tmp}{plugin}{'Foobar'}{handles}) {
         foreach(values %{$lk{tmp}{plugin}{'Foobar'}{handles}}) {
-          if(${$_}{host} =~ /^$_[0]{host}$/i) {
+          if(${$_}{name} =~ /^$_[0]{name}$/i) {
             lkDebug("Not connecting to ${$_}{host} -- matches already connectd.");
             return 0;
           }
