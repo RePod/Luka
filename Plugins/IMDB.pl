@@ -21,7 +21,7 @@ addPlug('IMDB', {
         my $content = get('http://www.omdbapi.com/?i='.${$_}{imdbID});
         $content =~ s/[!\P{IsASCII}]/-/g;
         %imdb = %{decode_json($content)};
-        if($imdb{Title} =~ /^$_[2]/i) {
+        if($imdb{Title} =~ /^$_[2]$/i) {
           if(!$_[4]) {
             my @genres = split /, /, $imdb{Genre};
             foreach(@genres) { $_ = substr($_, 0, 3); }
