@@ -24,8 +24,7 @@ addPlug('Git', {
         my $message = $1;
         if(!$message) { $message = 'Automated push from '.hostname(); }
         else { $message =~ s/^\s//g; $message =~ s/\"/\\\"/g; }
-        system('git add *.pl');
-        system('git add *.bat');
+        system('git add . -A');
         system('git commit -m "'.$message.'"');
         ## This doesn't work... it'll try to push but it's not getting output.
         my @output = split /\n|\r/, `git push`;
@@ -49,7 +48,7 @@ addPlug('Git', {
       'tags' => ['utility'],
       'code' => sub {
         my @output = split /\n|\r/, `git pull`;
-        my $changes = 'No changes made';
+        my $changes = 'No changes made.';
         foreach(@output) {
           chomp($_);
           #  2 files changed, 4 insertions(+), 8 deletions(-)
@@ -57,8 +56,8 @@ addPlug('Git', {
             ($changes = $_) =~ s/^\s|\s$//g;
           }
         }
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Pulled latest updates from >>Github. $changes Reloading.");
-        &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},0);
+        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Pulled latest updates from >>Github. $changes Refreshing.");
+        &{$utility{'Core_reloadSay'}}($_[1]{irc},$_[2]{where},1);
       }
     },
     '^Git status$' => {
@@ -86,7 +85,7 @@ addPlug('Git', {
           }
         }
         if($behind) {
-          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"Your're behind by $behind. >>git >>pull to get the updates.");
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"You're behind by $behind. >>git >>pull to get the updates.");
         }
         else {
           if(@files) {

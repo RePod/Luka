@@ -8,7 +8,7 @@ use IO::Select; # Used for handling connections!
 use IO::Socket; # Used for connecting!
 use utf8; # Used for fancy stuff, generally here to be safe.
 use JSON; # Used for data saving! Because YAML is for losers.
-$lk{version} = 'Luka 4.0';
+$lk{version} = 'Luka 4.0.2'; # Keep changing this every time it's modified!
 $lk{select} = IO::Select->new();
 ($lk{directory} = abs_path($0)) =~ s/([\\\/])[^\\\/]+?\.pl$/$1/;
 lkDebug($lk{directory});
@@ -176,7 +176,7 @@ sub lkConnect {
         }
         $rawmsg =~ s/\n|\r//g;
         ## Yes I'm using the same parsing as Luka 3. Shut up.
-        if($rawmsg =~ /:.*?:/) { @msg = ((split /\s/, ($rawmsg =~ /:(.*?):/)[0]), ($rawmsg =~ /:.*?:(.*)/g)[0]); } 
+        if($rawmsg =~ /:.*?:/) { @msg = ((split /\s/, ($rawmsg =~ /:(.*?) :/)[0]), ($rawmsg =~ /:.*? :(.*)/g)[0]); } 
         else { @msg = (split /:|\s/, $rawmsg); }
         if($msg[0] =~ /^$/) { my $c = -1; foreach(@msg) { $c++; next if($c == 0); $msg[($c-1)] = $msg[$c]; } pop(@msg); }
         if($msg[1] =~ /^$/) { my $c = -1; foreach(@msg) { $c++; next if(($c == 0) || ($c == 1)); $msg[($c-1)] = $msg[$c]; } pop(@msg); @msg = reverse(@msg); }
@@ -199,7 +199,7 @@ sub lkConnect {
         # Pass things to plugins!
         foreach(keys %{$lk{plugin}}) {
           eval { &{$lk{plugin}{$_}{code}{irc}}({'irc' => $fh, 'name'=>$lk{data}{networks}[$lk{tmp}{connection}{fileno($fh)}]{name}, 'raw' => $rawmsg, 'msg', => \@msg, 'data' => $lk{data}{plugin}{$_}, 'tmp' => $lk{tmp}{plugin}{$_}}) if($lk{plugin}{$_}{code}{irc}); };
-          print $@ if $@;
+          print "Error in $_ - ".$@ if $@;
         }
       }
     }
@@ -310,7 +310,6 @@ sub addPlug {
       &{$lk{plugin}{$_[0]}{code}{unload}}({'data' => $lk{data}{plugin}{$_[0]}, 'tmp' => $lk{tmp}{plugin}{$_[0]}}) if($lk{plugin}{$_[0]}{code}{unload}); 
       lkDebug("Overwriting Plugin ${$_[1]}{name} ($_[0])"); 
       delete $lk{plugin}{$_[0]};
-      %{$lk{plugin}{$_[0]}} = ('name' => ${$_[1]}{name});
     }
     # Key doesn't exist. Must be loading the plugin for the first time!
     else { lkDebug("Loading Plugin ${$_[1]}{name} ($_[0])"); }

@@ -14,7 +14,7 @@ addPlug("Foobar",{
           &{$utility{'Foobar_npSay'}}(${$_}{auto}[0],${$_}{auto}[1],$_,1);
         }
       }
-      addTimer(time+20,{'name'=>'np','code'=>$utility{"Foobar_timer"}});
+      addTimer(time+5,{'name'=>'np','code'=>$utility{"Foobar_timer"}});
     },
     'npSay' => sub {
       # Input : IRC handle, where, NP Hash, bool
@@ -31,12 +31,12 @@ addPlug("Foobar",{
         }
         else { $lk{tmp}{plugin}{'Foobar'}{lastNP}{$_[2]{name}} = $_[2]{info}{title}; }
       }
-      if($_[2]{info}{title} =~ /[\(\[].+?[\]\)]/) { $_[2]{info}{title} =~ s/([\(\[].+?[\]\)])/\x04$1\x04/; }
+      foreach('title','album','artist') { if($_[2]{info}{$_} =~ /[\(\[].+?[\]\)]/) { $_[2]{info}{$_} =~ s/([\(\[].+?[\]\)])/\x04$1\x04/g; } }
       &{$utility{'Fancify_say'}}($_[0],$_[1],"[\x04$_[2]{name}\x04] \x04$_[2]{info}{title}\x04 by \x04$_[2]{info}{artist}\x04 [\x04$_[2]{info}{album}\x04] [$bar]");
     },
     'getInfo' => sub {
       while(1) {
-        my @readable = $lk{tmp}{plugin}{'Foobar'}{select}->can_read(1);
+        my @readable = $lk{tmp}{plugin}{'Foobar'}{select}->can_read(.5);
         if(@readable) {
           foreach $handle (@readable) {
             my $raw = readline($handle);
@@ -71,7 +71,7 @@ addPlug("Foobar",{
       # Input: hash!
       if($lk{tmp}{plugin}{'Foobar'}{handles}) {
         foreach(values %{$lk{tmp}{plugin}{'Foobar'}{handles}}) {
-          if(${$_}{host} =~ /^$_[0]{host}$/i) {
+          if(${$_}{name} =~ /^$_[0]{name}$/i) {
             lkDebug("Not connecting to ${$_}{host} -- matches already connectd.");
             return 0;
           }
@@ -104,7 +104,8 @@ addPlug("Foobar",{
     },
   },
   'commands' => {
-    '^NP(\w+)?$' => {
+    '^NP([\w\S]+)?$' => {
+      cooldown=>3,
       'tags' => ['utility','media'],
       'description' => "Ges NP info!",
       'example' => "NPCaaz\nNP",
@@ -118,6 +119,8 @@ addPlug("Foobar",{
           lkDebug(${$_}{name});
           if(${$_}{name} =~ /^$server$/i) {
             $caught++;
+            print {${$_}{filehandle}} "trackinfo\n";
+            &{$utility{'Foobar_getInfo'}};
             print {${$_}{filehandle}} "trackinfo\n";
             &{$utility{'Foobar_getInfo'}};
             &{$utility{'Foobar_npSay'}}($_[1]{irc},$_[2]{where},$_);
@@ -149,7 +152,7 @@ addPlug("Foobar",{
             }
             else {
               ${$_}{auto} = [$_[1]{irc},$channel];
-              &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},">>$server will now autopost to $channel (Temporarily, at least. This lasts until the next restart).");
+              &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04$server\x04 will now autopost to $channel (Temporarily, at least. This lasts until the next restart).");
             }
           }
         }
@@ -197,6 +200,42 @@ addPlug("Foobar",{
         }
         else {
           &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"No server found with that ID");
+        }
+      }
+    },
+  }
+});
+addPlug('NP_Lyrics', {
+  name => 'Now Playing with Lyrics',
+  description => "Connects the Lyrics plugin with the NP plugin.",
+  creator => 'Caaz',
+  version => '1',
+  dependencies => ['Foobar','Lyrics','Core_Utilities','Core_Command'],
+  commands => {
+    '^NP Lyrics(\w+)?$' => {
+      'tags' => ['utility','media'],
+      'description' => "Ges NP info!",
+      'example' => "NPCaaz\nNP",
+      'code' => sub {
+        my $server = $1;
+        #&{$utility{'Foobar_getInfo'}};
+        $server = $_[2]{username} if(!$server);
+        my $caught = 0;
+        foreach (@{$lk{data}{plugin}{'Foobar'}{servers}}) { if(${$_}{name} =~ /$server/) { &{$lk{plugin}{'Foobar'}{utilities}{connect}}($_); } }
+        foreach(values %{$lk{tmp}{plugin}{'Foobar'}{handles}}) {
+          lkDebug(${$_}{name});
+          if(${$_}{name} =~ /^$server$/i) {
+            $caught++;
+            print {${$_}{filehandle}} "trackinfo\n";
+            &{$utility{'Foobar_getInfo'}};
+            &{$utility{'Foobar_npSay'}}($_[1]{irc},$_[2]{where},$_);
+            my (@info) = (${$_}{info}{artist},${$_}{info}{title});
+            foreach(@info) { $_ =~ s/[\[\(].+?[\]\)]|\x04+|\s+$|^\s+//gs; }
+            &{$utility{'Lyrics_show'}}($_[1]{irc}, $_[2]{where}, &{$utility{'Lyrics_get'}}(@info), 100);
+          }
+        }
+        if(!$caught) {
+          &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"$server not connected"); 
         }
       }
     },

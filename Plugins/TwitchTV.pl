@@ -36,7 +36,7 @@ addPlug("TwitchTV",{
       my %irc = %{$_[0]};
       if($irc{msg}[1] =~ /^PRIVMSG|NOTICE$/i) {
         my %parsed = %{&{$lk{plugin}{'Core_Utilities'}{utilities}{parse}}(@{$irc{msg}})};
-        foreach($parsed{msg} =~ /twitch\.tv\/(\w+)/g) {
+        foreach($parsed{msg} =~ /twitch\.tv\/(\w+)/) {
           &{$utility{'TwitchTV_info'}}($irc{irc},$parsed{where},$_);
         }
       }

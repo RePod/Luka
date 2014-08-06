@@ -58,7 +58,7 @@ addPlug('Userbase', {
     'isLoggedIn' => sub {
       # Server, Nickname, Error Message?
       foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) { 
-        if((${$_}{currently}) && (${$_}{currently} =~ /^$_[1]$/i)) { 
+        if((${$_}{currently}) && (${$_}{currently} eq $_[1])) { 
           &{$utility{'Fancify_say'}}(&{$utility{'Core_Utilities_getHandle'}}($_[0]),$_[1],"You're >>already logged in as \x04${$_}{name}") if(($_[2]) && ($_[2] == 2)); 
           return 1; 
         }
@@ -73,10 +73,22 @@ addPlug('Userbase', {
     'info' => sub {
       # Server, Nicknamec
       if(!&{$utility{'Userbase_isLoggedIn'}}($_[0],$_[1])) { return {0=>0}; }
-      foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) {
-        if(grep /^$_[1]$/i, @{${$_}{nicknames}}) { if((${$_}{currently}) && (${$_}{currently} eq $_[1])) { return $_; } }
-      }
+      foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) { if(grep /^$_[1]$/i, @{${$_}{nicknames}}) { if((${$_}{currently}) && (${$_}{currently} eq $_[1])) { return $_; } } }
       return {0=>0};
+    },
+    'getID' => sub {
+      # Input: Server Name, Account
+      # Output: ID
+      my$i = 0;
+      foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) {
+        lkDebug("Checking ${$_}{currently}");
+        if (${$_}{currently} eq ${$_[1]}{currently}) { 
+          lkDebug("Got a match on $i - ${$_[1]}{currently}");
+          return $i;
+        }
+        $i++;
+      }
+      return -1
     },
     'view' => sub {
       #Input: Server, Where, Nickname.
@@ -86,12 +98,18 @@ addPlug('Userbase', {
       foreach(@{$lk{data}{plugin}{'Userbase'}{users}{$_[0]}}) {
         if(grep /^$_[2]$/i, @{${$_}{nicknames}}) {
           $match++;
-          &{$utility{'Fancify_say'}}($handle,$_[1],">>$i: [\x04${$_}{name}\x04] [Access: >>${$_}{access}] [Nicknames: \x04".(join "\x04, \x04", @{${$_}{nicknames}})."\x04]");
+          if((${$_}{currently}) && (${$_}{currently} eq $_[2])) { 
+            &{$utility{'Fancify_say'}}($handle,$_[1],">>$i: [\x04${$_}{name}\x04] [Access: >>${$_}{access}] [Nicknames: \x04".(join "\x04, \x04", @{${$_}{nicknames}})."\x04]");
+            return 1;
+          }
         }
         $i++;
       }
       if(!$match) {
         &{$utility{'Fancify_say'}}($handle,$_[1],"No userbase accounts tied to that nickname.");
+      }
+      else {
+        &{$utility{'Fancify_say'}}($handle,$_[1],"You don't seem to be logged in at the moment.");
       }
     }
   },
@@ -114,7 +132,7 @@ addPlug('Userbase', {
     },
   },
   'commands' => {
-    '^UB Access (\d+) (\d+)$' => { 
+    '^Access (\d+) (\d+)$' => { 
       'description' => "Sets access for a user",
       'tags' => ['utility'],
       'code' => sub {

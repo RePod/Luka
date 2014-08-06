@@ -39,6 +39,7 @@ addPlug("Caaz_Utilities", {
       my %irc = %{$_[0]};
       if($irc{msg}[1] =~ /^invite$/i) {
         push(@{$lk{data}{networks}[$lk{tmp}{connection}{fileno($irc{irc})}]{autojoin}}, $irc{msg}[3]);
+        sleep(2);
         lkRaw($irc{irc},"JOIN $irc{msg}[3]");
         &{$utility{'Fancify_say'}}($irc{irc}, $irc{msg}[3], "[Invited by \x04$irc{msg}[0]\x04] This channel is added to >>autojoin. If you ever wish to remove me, simply kick me and I won't be coming back. To see command listing, check out >>help. Command prefix is \x04$lk{data}{prefix}\x04 Better learn regex.");
         #&{$utility{'Fancify_say'}}($irc{irc}, (split /\!|\@/, $irc{msg}[0])[0], "Memo Caaz if you want me in $irc{msg}[3].");
@@ -87,9 +88,7 @@ addPlug("Poll", {
       'code' => sub {
         my %poll = ('creator' => $_[2]{nickname}, 'question' => $1, 'total' => 0);
         if(@{$_[3]{polls}} > 3) { &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Sorry, too many polls exist!"); return 1; }
-        foreach(split /, /, $2) {
-          push(@{$poll{answers}}, {'text' => $_, 'votes' => 0});
-        }
+        foreach(split /, /, $2) { push(@{$poll{answers}}, {'text' => $_, 'votes' => 0}); }
         push(@{$_[3]{polls}}, \%poll);
         &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Created poll! Check the poll IDs with \x04~polls\x04 and vote with \x04~vote PollID Option");
       }
@@ -101,7 +100,7 @@ addPlug("Poll", {
         $poll--;
         if($_[3]{polls}[$poll]) {
           if($_[3]{polls}[$poll]{creator} =~ /^$_[2]{nickname}$/) {
-            &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Closed poll.");#
+            &{$utility{"Fancify_say"}}($_[1]{irc},$_[2]{where},"Closed poll.");
             delete $_[3]{polls}[$poll];
             @{$_[3]}{polls} = grep(!/^$/i, @{$_[3]}{polls});
           }
@@ -169,43 +168,62 @@ addPlug("Poll", {
 addPlug("Misc_Commands", {
   'creator' => 'Caaz',
   'name' => 'Misc Commands',
-  'dependencies' => ['Fancify','Caaz_Utilities'],
+  'dependencies' => ['Fancify','Core','Caaz_Utilities'],
   'modules' => ['Sys::Hostname'],
   'description' => "This is generally where I throw commands that aren't important/big enough to have their own plugin.",
   'help' => {
     'Commands' => "The commands list is over here https://dl.dropboxusercontent.com/u/9305622/Luka/Commands.html This page is updated whenever someone uses the ~commands command."
   },
   'commands' => {
+    '^Error$' => {
+      'tags' => ['utility'],
+      'code' => sub { &{$utility{'Blah'}}(); }
+    },
+    '^CCC (.*)$' => {
+      code => sub {
+        my $ua = LWP::UserAgent->new;
+        $ua->timeout(5);
+        $ua->show_progress(1);
+        my $url = $1; if($url !~ /^http/i) {$url = "http://".$url; }
+        my $response = $ua->get($url);
+        if($response->is_success) {
+          if($response->decoded_content =~ /Content Restricted/) { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04Can Caaz Connect?\x04 >>Nope, content filtered."); } 
+          else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04Can Caaz Connect?\x04 >>Yes!"); }
+        }
+        else { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"\x04Can Caaz Connect?\x04 >>Nope, it timed out."); }
+      }
+    },
     '^Topic (.*)$' => {
       'access' => 3,
       'tags' => ['utility'],
       'description' => "Sets the topic, using Luka's Fancify to pretty it up.",
-      'code' => sub {
-        lkRaw($_[1]{irc},"TOPIC $_[2]{where} :".&{$utility{'Fancify_main'}}($1));
-      }
+      'code' => sub { lkRaw($_[1]{irc},"TOPIC $_[2]{where} :".&{$utility{'Fancify_main'}}($1)); }
     },
     '^Timer (\d+) (.+)$' => {
       'tags' => ['misc','utility'],
-      'description' => "Issues a timer! Available options are say and action.",
+      'description' => "Issues a timer! Eventually this will be useful.",
       'code' => sub {
         my ($time, $command) = ($1,$2);
         if($command =~ /^say (.+)/i) {
           addTimer(time+$time, {
           'name' => "User Timer",
           'code' => sub { 
-            lkDebug($_[1]);
-            my @a = @{$_[1]}; 
-            lkDebug(join ", ", @a); 
+            my @a = @{$_[1]};
             &{$utility{'Fancify_say'}}(@a); 
           },
           'args'=>[$_[1]{irc},$_[2]{where},$1]});
         }
       },
     },
+    '^rr$' => {
+      'tags' => ['misc','game'],
+      'description' => "Roulette of the russian variety",
+      'code' => sub { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},&{sub {(rand() <= 1/6)?"You >>died":"You >>live"}}); }
+    },
     '^Say (.+)$' => {
       'tags' => ['misc'],
       'description' => "Repeats whatever you want it to say.",
-      'code' => sub { &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},$1); }
+      'code' => sub { my $text = $1; $text =~ s/\\x04/\x04/g; &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},$text); }
     },
     '^Action (.+)$' => {
       'tags' => ['misc'],
@@ -226,21 +244,5 @@ addPlug("Misc_Commands", {
         &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},$pl);
       }
     },
-    '^Meta$' => {
-      'tags' => ['utility'],
-      'description' => "Gets various information about this bot. Caaz's favorite command.",
-      'code' => sub {
-        my @files = (<./Plugins/*.pl>,$0);
-        my %count = ('lines'=>0,'comments'=>0);
-        foreach(@files) {
-          open NEW, "<".$_;
-          my @lines = <NEW>;
-          $count{lines} += @lines+0;
-          foreach(@lines) { if($_ =~ /\#/) {$count{comments}++;} }
-          close NEW;
-        }
-        &{$utility{'Fancify_say'}}($_[1]{irc},$_[2]{where},"[\x04$lk{version}\x04] (".hostname()." >>$lk{os}) >>$count{lines} lines, >>$count{comments} comments, >>".(keys %{$lk{plugin}})." plugins loaded, >>".@files." files.");
-      }
-    }
   }
 });
