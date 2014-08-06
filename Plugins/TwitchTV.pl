@@ -10,13 +10,13 @@ addPlug("TwitchTV",{
       # Input: FileHandle, Where, Twitch User
       # Output: Boolean (streaming/notstreaming)
       my $user = $_[2];
-      my $json = get('http://api.justin.tv/api/stream/list.json?channel='.$user);
+      my $json = get('https://api.twitch.tv/kraken/streams/'.$user);
       $json =~ s/^\[|\]$//g;
       my %twitch;
       eval { %twitch = %{decode_json($json)}; };
       if($@) { &{$utility{'Fancify_say'}}($_[0],$_[1],">>$user is offline. [\x04According to the API\x04] [http://twitch.tv/$user]"); return 0; }
       else {
-        &{$utility{'Fancify_say'}}($_[0],$_[1],"[>>$twitch{channel_count}] $twitch{title} [\x04$twitch{meta_game}\x04] [http://twitch.tv/$user]");
+        &{$utility{'Fancify_say'}}($_[0],$_[1],"[>>$twitch{stream}{viewers}] $twitch{stream}{channel}{status} [\x04$twitch{stream}{game}\x04] [http://twitch.tv/$user]");
         return 1;
       }
     },
